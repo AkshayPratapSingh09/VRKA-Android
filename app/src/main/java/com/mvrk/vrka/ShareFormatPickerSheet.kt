@@ -90,7 +90,7 @@ fun ShareFormatPickerSheet(
     manager: VrkaDownloadManager,
     titleHint: String? = null,
     onDismiss: () -> Unit,
-    onEnqueue: (request: DownloadRequest, title: String, uploader: String, thumbnailUrl: String?) -> Unit,
+    onEnqueue: (request: DownloadRequest, title: String, uploader: String, thumbnailUrl: String?, durationText: String?) -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
@@ -231,6 +231,7 @@ fun ShareFormatPickerSheet(
                                     state.details.title,
                                     state.details.author.orEmpty(),
                                     state.details.thumbnailUrl,
+                                    state.details.durationText,
                                 )
                                 onDismiss()
                             }
@@ -286,6 +287,7 @@ fun ShareFormatPickerSheet(
                                         state.details.title,
                                         state.details.author.orEmpty(),
                                         state.details.thumbnailUrl,
+                                        state.details.durationText,
                                     )
                                     onDismiss()
                                 }

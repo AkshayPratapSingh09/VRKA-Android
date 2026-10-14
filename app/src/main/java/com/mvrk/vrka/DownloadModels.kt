@@ -120,6 +120,7 @@ data class DownloadJob(
     val title: String = "",
     val uploader: String = "",
     val thumbnailUrl: String? = null,
+    val durationText: String? = null,
     val detail: String = "Waiting",
     val progress: Float = 0f,
     val speed: String = "",

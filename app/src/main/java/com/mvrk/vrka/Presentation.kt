@@ -27,6 +27,45 @@ internal fun jobMediaSummary(job: DownloadJob): String = when (job.request.mode)
     }
 }
 
+internal data class MediaTagInfo(
+    val label: String,
+    val isPrimary: Boolean = false,
+)
+
+internal fun jobMediaTags(job: DownloadJob): List<MediaTagInfo> = buildList {
+    when (job.request.mode) {
+        MediaMode.VIDEO -> {
+            val actual = job.actualResolution
+            val res = when {
+                !actual.isNullOrBlank() -> actual
+                job.request.quality != VideoQuality.BEST -> job.request.quality.label
+                else -> "Best"
+            }
+            add(MediaTagInfo(label = res, isPrimary = true))
+            add(MediaTagInfo(label = "VIDEO"))
+            if (job.request.prefer60Fps) {
+                add(MediaTagInfo(label = "60fps"))
+            }
+        }
+        MediaMode.AUDIO -> {
+            when (job.request.audioFormat) {
+                AudioFormat.MP3 -> {
+                    add(MediaTagInfo(label = "MP3 ${job.request.mp3Bitrate}k", isPrimary = true))
+                    add(MediaTagInfo(label = "AUDIO"))
+                }
+                AudioFormat.OPUS -> {
+                    add(MediaTagInfo(label = "OPUS", isPrimary = true))
+                    add(MediaTagInfo(label = "AUDIO"))
+                }
+                AudioFormat.WAV -> {
+                    add(MediaTagInfo(label = "WAV", isPrimary = true))
+                    add(MediaTagInfo(label = "AUDIO"))
+                }
+            }
+        }
+    }
+}
+
 internal fun jobStatusLabel(job: DownloadJob): String = when {
     job.state == JobState.PREPARING && job.detail.contains("runtime", true) -> "Analysing"
     job.state == JobState.POSTPROCESSING && job.detail.contains("Publishing", true) -> "Publishing"

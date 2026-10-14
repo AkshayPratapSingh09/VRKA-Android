@@ -183,6 +183,7 @@ class VrkaDownloadManager(
         initialTitle: String = "",
         uploader: String = "",
         thumbnailUrl: String? = null,
+        durationText: String? = null,
     ): String {
         require(isHttpUrl(request.url)) { "Enter a valid http or https URL." }
         val settings = settingsRepository.settings.value
@@ -203,6 +204,7 @@ class VrkaDownloadManager(
             title = initialTitle,
             uploader = uploader,
             thumbnailUrl = thumbnailUrl,
+            durationText = durationText,
         )
         mutate(persist = true) { listOf(job) + it }
         pendingQueue.add(id)
@@ -233,6 +235,7 @@ class VrkaDownloadManager(
             title = previous.title,
             uploader = previous.uploader,
             thumbnailUrl = previous.thumbnailUrl,
+            durationText = previous.durationText,
             detail = "Queued retry",
             attempt = previous.attempt + 1,
         )
@@ -489,11 +492,14 @@ class VrkaDownloadManager(
                     val title = metadata.title?.take(180).orEmpty()
                     val author = metadata.uploader?.take(80) ?: metadata.uploaderId?.take(80)
                     val thumb = metadata.thumbnail
+                    val duration = metadata.duration.takeIf { it > 0 }
+                    val durationText = duration?.let { ShareFormatExtractor.formatDuration(it) }
                     update(
                         jobId,
                         title = if (title.isNotBlank()) title else null,
                         uploader = if (!author.isNullOrBlank()) author else null,
                         thumbnailUrl = if (!thumb.isNullOrBlank()) thumb else null,
+                        durationText = durationText,
                         detail = "Source ready",
                         persist = true,
                     )
@@ -1314,6 +1320,7 @@ class VrkaDownloadManager(
         title: String? = null,
         uploader: String? = null,
         thumbnailUrl: String? = null,
+        durationText: String? = null,
         detail: String? = null,
         progress: Float? = null,
         speed: String? = null,
@@ -1331,6 +1338,7 @@ class VrkaDownloadManager(
                     title = title ?: job.title,
                     uploader = uploader ?: job.uploader,
                     thumbnailUrl = thumbnailUrl ?: job.thumbnailUrl,
+                    durationText = durationText ?: job.durationText,
                     detail = detail ?: job.detail,
                     progress = progress ?: job.progress,
                     speed = speed ?: job.speed,
