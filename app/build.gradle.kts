@@ -108,8 +108,7 @@ extensions.configure<ApplicationExtension> {
 
     buildTypes {
         debug {
-            applicationIdSuffix = ".debug"
-            versionNameSuffix = "-debug"
+            // No suffix so package name matches com.mvrk.vrka
         }
         release {
             isMinifyEnabled = true

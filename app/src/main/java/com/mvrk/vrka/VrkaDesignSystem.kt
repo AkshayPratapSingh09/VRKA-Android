@@ -445,9 +445,9 @@ fun VrkaPrimaryButton(
         shape = RoundedCornerShape(VrkaTokens.RadiusMedium),
         colors = androidx.compose.material3.ButtonDefaults.buttonColors(
             containerColor = VrkaTokens.Accent,
-            contentColor = Color.White,
+            contentColor = if (LocalVrkaColors.current.isLight) Color.White else COLOR_ONYX,
             disabledContainerColor = VrkaTokens.Accent.copy(alpha = 0.22f),
-            disabledContentColor = Color.White.copy(alpha = 0.35f),
+            disabledContentColor = (if (LocalVrkaColors.current.isLight) Color.White else COLOR_ONYX).copy(alpha = 0.35f),
         ),
         modifier = modifier.fillMaxWidth().height(height),
     ) {
@@ -670,10 +670,10 @@ internal fun calculateNavIndicatorBounds(
 }
 
 
-val NAV_ACTIVE_DARK = Color(0xFFF5F3FF)
-val NAV_ACTIVE_LIGHT = Color(0xFF1E1B2E)
-val NAV_UNSELECTED_DARK = Color(0xFF888496)
-val NAV_UNSELECTED_LIGHT = Color(0xFF6B6778)
+val NAV_ACTIVE_DARK = COLOR_WHITE
+val NAV_ACTIVE_LIGHT = COLOR_ONYX
+val NAV_UNSELECTED_DARK = Color(0xFF888B98)
+val NAV_UNSELECTED_LIGHT = Color(0xFF6B6E7A)
 
 @Composable
 fun VrkaFloatingNavBar(
@@ -698,42 +698,42 @@ fun VrkaFloatingNavBar(
         if (colors.isLight) {
             Brush.verticalGradient(
                 listOf(
-                    Color(0x28000000),
-                    Color(0x0E000000),
-                    Color(0x18000000),
+                    Color(0x2217181C),
+                    Color(0x0C17181C),
+                    Color(0x1817181C),
                 ),
             )
         } else {
             Brush.verticalGradient(
                 listOf(
-                    Color(0x33FFFFFF),
-                    Color(0x12FFFFFF),
-                    Color(0x0AFFFFFF),
+                    Color(0x4097E7BA),
+                    Color(0x1AFFFFFF),
+                    Color(0x0F17181C),
                 ),
             )
         }
     }
 
     val puckTintColor = if (colors.isLight) {
-        Color(0xFFE5E2EE)
+        Color(0xFFE4F8ED)
     } else {
-        Color(0xFF282538)
+        Color(0xFF1B2B22)
     }
-    val puckSurfaceAlpha = if (colors.isLight) 0.10f else 0.08f
+    val puckSurfaceAlpha = if (colors.isLight) 0.12f else 0.14f
 
     val puckBorderBrush = remember(colors.isLight) {
         if (colors.isLight) {
             Brush.verticalGradient(
                 listOf(
-                    Color(0x1F000000),
-                    Color(0x08000000),
+                    Color(0x401B804D),
+                    Color(0x151B804D),
                 ),
             )
         } else {
             Brush.verticalGradient(
                 listOf(
-                    Color(0x50FFFFFF),
-                    Color(0x20FFFFFF),
+                    Color(0x9097E7BA),
+                    Color(0x35FBFB78),
                 ),
             )
         }
@@ -841,18 +841,18 @@ fun VrkaFloatingNavBar(
                             shadow = null,
                             onDrawSurface = {
                                 val veilColor = if (colors.isLight) {
-                                    Color(0xFFF7F6FA).copy(alpha = 0.46f)
+                                    Color(0xFFFFFFFF).copy(alpha = 0.60f)
                                 } else {
-                                    Color(0xFF13121A).copy(alpha = 0.42f)
+                                    COLOR_ONYX.copy(alpha = 0.65f)
                                 }
                                 drawRect(color = veilColor)
                             },
                             backdropScale = 0.75f,
                         )
                     } else if (colors.isLight) {
-                        Modifier.background(Color(0xFFF7F6FA).copy(alpha = 0.70f), RoundedCornerShape(NAV_BAR_CORNER_RADIUS))
+                        Modifier.background(Color(0xFFFFFFFF).copy(alpha = 0.85f), RoundedCornerShape(NAV_BAR_CORNER_RADIUS))
                     } else {
-                        Modifier.background(Color(0xFF13121A).copy(alpha = 0.68f), RoundedCornerShape(NAV_BAR_CORNER_RADIUS))
+                        Modifier.background(COLOR_ONYX.copy(alpha = 0.85f), RoundedCornerShape(NAV_BAR_CORNER_RADIUS))
                     }
                 )
                 .border(
@@ -1060,7 +1060,7 @@ private fun VrkaNavItem(
         label = "navItemColor",
     )
     val iconTint by animateColorAsState(
-        targetValue = if (isSelected) VRKA_PURPLE else inactiveColor,
+        targetValue = if (isSelected) (if (isLight) Color(0xFF1B804D) else COLOR_MINT) else inactiveColor,
         animationSpec = tween(120),
         label = "navIconTint",
     )
@@ -1100,9 +1100,10 @@ private fun VrkaNavItem(
                 text = item.label,
                 style = MaterialTheme.typography.labelSmall.copy(
                     fontFamily = VrkaMonoFamily,
-                    fontSize = 11.sp,
+                    fontSize = 11.5.sp,
                     fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
                     lineHeight = 13.sp,
+                    letterSpacing = 0.2.sp,
                     platformStyle = androidx.compose.ui.text.PlatformTextStyle(
                         includeFontPadding = false,
                     ),

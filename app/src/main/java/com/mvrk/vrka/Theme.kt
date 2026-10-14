@@ -19,13 +19,20 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.core.view.WindowCompat
 
-val VRKA_PURPLE = Color(0xFF6F30D5)
-val VrkaPurple = VRKA_PURPLE
-val VrkaPurpleLight = Color(0xFF8B4FE8)
-val VrkaPurpleDark = Color(0xFF5522A8)
-val VrkaSuccess = Color(0xFF2BCB77)
-val VrkaWarning = Color(0xFFE7A93D)
-val VrkaError = Color(0xFFEF5A67)
+// Colors from user palette
+val COLOR_ONYX = Color(0xFF17181C)
+val COLOR_MINT = Color(0xFF97E7BA)
+val COLOR_CYBER_LIME = Color(0xFFFBFB78)
+val COLOR_WHITE = Color(0xFFFFFFFF)
+
+// Legacy brand aliases mapped to new palette
+val VRKA_PURPLE = COLOR_MINT
+val VrkaPurple = COLOR_MINT
+val VrkaPurpleLight = Color(0xFFB4F2CE)
+val VrkaPurpleDark = Color(0xFF6ECFA0)
+val VrkaSuccess = COLOR_MINT
+val VrkaWarning = COLOR_CYBER_LIME
+val VrkaError = Color(0xFFFF6B6B)
 
 data class VrkaColors(
     val background: Color,
@@ -50,120 +57,128 @@ data class VrkaColors(
 
 val AmoledVrkaColors = VrkaColors(
     background = Color(0xFF000000),
-    surfaceCard = Color(0xFF000000),
-    surfaceElevated = Color(0xFF08080C),
-    surfaceInset = Color(0xFF000000),
-    surfaceFloatingNav = Color(0xF2000000),
-    borderSubtle = Color(0x1FFFFFFF),
-    borderNav = Color(0x2EFFFFFF),
-    borderActive = Color(0x558B4FE8),
-    accent = VrkaPurple,
-    accentLight = VrkaPurpleLight,
-    accentContainer = Color(0xFF210E3B),
-    success = VrkaSuccess,
-    warning = VrkaWarning,
+    surfaceCard = COLOR_ONYX,
+    surfaceElevated = Color(0xFF22242B),
+    surfaceInset = Color(0xFF0D0E10),
+    surfaceFloatingNav = Color(0xF217181C),
+    borderSubtle = Color(0x28FFFFFF),
+    borderNav = Color(0x4097E7BA),
+    borderActive = COLOR_MINT,
+    accent = COLOR_MINT,
+    accentLight = COLOR_CYBER_LIME,
+    accentContainer = Color(0xFF1E3327),
+    success = COLOR_MINT,
+    warning = COLOR_CYBER_LIME,
     error = VrkaError,
-    textPrimary = Color(0xFFF7F5F9),
-    textSecondary = Color(0xFF9894A0),
-    textTertiary = Color(0xFF65626E),
+    textPrimary = COLOR_WHITE,
+    textSecondary = Color(0xFFA5A8B4),
+    textTertiary = Color(0xFF6F727F),
     isLight = false,
 )
 
 val StandardDarkVrkaColors = VrkaColors(
-    background = Color(0xFF121216),
-    surfaceCard = Color(0xFF1B1A20),
-    surfaceElevated = Color(0xFF222129),
-    surfaceInset = Color(0xFF141418),
-    surfaceFloatingNav = Color(0xEB16151C),
+    background = COLOR_ONYX,
+    surfaceCard = Color(0xFF202228),
+    surfaceElevated = Color(0xFF282A32),
+    surfaceInset = Color(0xFF111215),
+    surfaceFloatingNav = Color(0xEB17181C),
     borderSubtle = Color(0x22FFFFFF),
-    borderNav = Color(0x33FFFFFF),
-    borderActive = Color(0x558B4FE8),
-    accent = VrkaPurple,
-    accentLight = VrkaPurpleLight,
-    accentContainer = Color(0xFF2E1452),
-    success = VrkaSuccess,
-    warning = VrkaWarning,
+    borderNav = Color(0x35FFFFFF),
+    borderActive = COLOR_MINT,
+    accent = COLOR_MINT,
+    accentLight = COLOR_CYBER_LIME,
+    accentContainer = Color(0xFF1D3628),
+    success = COLOR_MINT,
+    warning = COLOR_CYBER_LIME,
     error = VrkaError,
-    textPrimary = Color(0xFFF5F2F8),
-    textSecondary = Color(0xFFA5A0AD),
-    textTertiary = Color(0xFF706B78),
+    textPrimary = COLOR_WHITE,
+    textSecondary = Color(0xFFA5A8B4),
+    textTertiary = Color(0xFF6F727F),
     isLight = false,
 )
 
 val LightVrkaColors = VrkaColors(
-    background = Color(0xFFF6F6F8),
-    surfaceCard = Color(0xFFFFFFFF),
-    surfaceElevated = Color(0xFFFFFFFF),
-    surfaceInset = Color(0xFFEDEDF2),
+    background = Color(0xFFF3F4F6),
+    surfaceCard = COLOR_WHITE,
+    surfaceElevated = COLOR_WHITE,
+    surfaceInset = Color(0xFFE8E9EE),
     surfaceFloatingNav = Color(0xF2FFFFFF),
-    borderSubtle = Color(0x18000000),
-    borderNav = Color(0x24000000),
-    borderActive = Color(0x666F30D5),
-    accent = VrkaPurple,
-    accentLight = VrkaPurpleDark,
-    accentContainer = Color(0xFFEFE8FB),
-    success = Color(0xFF15803D),
-    warning = Color(0xFFB45309),
+    borderSubtle = Color(0x1817181C),
+    borderNav = Color(0x2617181C),
+    borderActive = Color(0xFF1A7A4A),
+    accent = Color(0xFF1B804D),
+    accentLight = COLOR_MINT,
+    accentContainer = Color(0xFFDCF8EA),
+    success = Color(0xFF1B804D),
+    warning = Color(0xFF9E8400),
     error = Color(0xFFDC2626),
-    textPrimary = Color(0xFF111015),
-    textSecondary = Color(0xFF5E5A68),
-    textTertiary = Color(0xFF8C8797),
+    textPrimary = COLOR_ONYX,
+    textSecondary = Color(0xFF5A5C66),
+    textTertiary = Color(0xFF8E919D),
     isLight = true,
 )
 
 val LocalVrkaColors = staticCompositionLocalOf { AmoledVrkaColors }
 
-val VrkaGlassSurface = Color(0xEB000000)
+val VrkaGlassSurface = Color(0xEB17181C)
 val VrkaGlassBorder = Color(0x28FFFFFF)
-val VrkaSurfaceCard = Color(0xFF000000)
-val VrkaCardBorder = Color(0x1FFFFFFF)
+val VrkaSurfaceCard = COLOR_ONYX
+val VrkaCardBorder = Color(0x28FFFFFF)
 
 private val AmoledColors = darkColorScheme(
-    primary = VrkaPurple,
-    onPrimary = Color.White,
-    primaryContainer = Color(0xFF210E3B),
-    onPrimaryContainer = Color(0xFFE9DAFA),
+    primary = COLOR_MINT,
+    onPrimary = COLOR_ONYX,
+    primaryContainer = Color(0xFF1E3327),
+    onPrimaryContainer = COLOR_MINT,
     background = Color.Black,
-    onBackground = Color(0xFFF7F5F9),
-    surface = Color.Black,
-    onSurface = Color(0xFFF7F5F9),
-    surfaceVariant = Color.Black,
-    onSurfaceVariant = Color(0xFFB0ACB8),
-    outline = Color(0x2EFFFFFF),
-    outlineVariant = Color(0x1FFFFFFF),
+    onBackground = COLOR_WHITE,
+    surface = COLOR_ONYX,
+    onSurface = COLOR_WHITE,
+    surfaceVariant = Color(0xFF202228),
+    onSurfaceVariant = Color(0xFFA5A8B4),
+    outline = Color(0x4097E7BA),
+    outlineVariant = Color(0x22FFFFFF),
     error = VrkaError,
 )
 
 private val StandardDarkColors = darkColorScheme(
-    primary = VrkaPurple,
-    onPrimary = Color.White,
-    primaryContainer = Color(0xFF2E1452),
-    onPrimaryContainer = Color(0xFFE8D9FA),
-    background = Color(0xFF121216),
-    onBackground = Color(0xFFF5F2F8),
-    surface = Color(0xFF1B1A20),
-    onSurface = Color(0xFFF5F2F8),
-    surfaceVariant = Color(0xFF222129),
-    onSurfaceVariant = Color(0xFFCBC5D1),
-    outline = Color(0xFF4A4650),
-    outlineVariant = Color(0xFF302D36),
+    primary = COLOR_MINT,
+    onPrimary = COLOR_ONYX,
+    primaryContainer = Color(0xFF1D3628),
+    onPrimaryContainer = COLOR_MINT,
+    background = COLOR_ONYX,
+    onBackground = COLOR_WHITE,
+    surface = Color(0xFF202228),
+    onSurface = COLOR_WHITE,
+    surfaceVariant = Color(0xFF282A32),
+    onSurfaceVariant = Color(0xFFA5A8B4),
+    outline = Color(0x3597E7BA),
+    outlineVariant = Color(0x22FFFFFF),
     error = VrkaError,
 )
 
 private val LightColors = lightColorScheme(
-    primary = VrkaPurple,
-    onPrimary = Color.White,
-    primaryContainer = Color(0xFFEFE8FB),
-    onPrimaryContainer = Color(0xFF241236),
-    background = Color(0xFFF6F6F8),
-    onBackground = Color(0xFF111015),
-    surface = Color(0xFFFFFFFF),
-    onSurface = Color(0xFF111015),
-    surfaceVariant = Color(0xFFEDEDF2),
-    onSurfaceVariant = Color(0xFF5E5A68),
-    outline = Color(0xFFC8C8CF),
-    outlineVariant = Color(0xFFE0E0E6),
+    primary = Color(0xFF1B804D),
+    onPrimary = COLOR_WHITE,
+    primaryContainer = Color(0xFFDCF8EA),
+    onPrimaryContainer = Color(0xFF0F5A32),
+    background = Color(0xFFF3F4F6),
+    onBackground = COLOR_ONYX,
+    surface = COLOR_WHITE,
+    onSurface = COLOR_ONYX,
+    surfaceVariant = Color(0xFFE8E9EE),
+    onSurfaceVariant = Color(0xFF5A5C66),
+    outline = Color(0xFFC0C2CC),
+    outlineVariant = Color(0xFFE0E2EB),
     error = Color(0xFFDC2626),
+)
+
+// PP Mori font family
+val PPMori = FontFamily(
+    Font(R.font.pp_mori_regular, FontWeight.Normal),
+    Font(R.font.pp_mori_regular, FontWeight.Medium),
+    Font(R.font.pp_mori_semibold, FontWeight.SemiBold),
+    Font(R.font.pp_mori_semibold, FontWeight.Bold),
 )
 
 val SpaceMono = FontFamily(
@@ -171,7 +186,7 @@ val SpaceMono = FontFamily(
     Font(R.font.space_mono_bold, FontWeight.Bold),
 )
 
-val LocalVrkaFontFamily = staticCompositionLocalOf { SpaceMono }
+val LocalVrkaFontFamily = staticCompositionLocalOf { PPMori }
 
 val VrkaMonoFamily: FontFamily
     @Composable
@@ -203,7 +218,7 @@ fun vrkaTypography(fontFamily: FontFamily): Typography = Typography(
     labelSmall = defaultTypography.labelSmall.copy(fontFamily = fontFamily),
 )
 
-val VrkaTypography = vrkaTypography(SpaceMono)
+val VrkaTypography = vrkaTypography(PPMori)
 
 @Composable
 fun VrkaTheme(
@@ -225,7 +240,7 @@ fun VrkaTheme(
         else -> StandardDarkColors
     }
     val selectedFont = when (fontPreference) {
-        FontPreference.VRKA_FONT -> SpaceMono
+        FontPreference.VRKA_FONT -> PPMori
         FontPreference.SYSTEM_FONT -> FontFamily.Default
     }
     val typography = vrkaTypography(selectedFont)

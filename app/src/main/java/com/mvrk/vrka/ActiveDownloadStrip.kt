@@ -52,7 +52,7 @@ internal fun ActiveDownloadStrip(
         colors.background == Color.Black -> Color(0xF2000000)
         else -> Color(0xDC14141E)
     }
-    val stripBorder = if (colors.isLight) Color(0x356F30D5) else VrkaTokens.BorderActive.copy(alpha = 0.5f)
+    val stripBorder = if (colors.isLight) Color(0x351B804D) else VrkaTokens.BorderActive.copy(alpha = 0.5f)
 
     Box(
         modifier = modifier
