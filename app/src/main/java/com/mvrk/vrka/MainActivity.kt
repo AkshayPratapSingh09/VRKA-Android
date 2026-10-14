@@ -7,16 +7,28 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import kotlinx.coroutines.flow.MutableStateFlow
 
+data class SharePickerRequest(
+    val url: String,
+    val titleHint: String? = null,
+    val token: Long = System.currentTimeMillis(),
+)
+
 class MainActivity : ComponentActivity() {
     private val openQueueRequests = MutableStateFlow(0L)
     private val sharedUrls = MutableStateFlow<String?>(null)
+    private val sharePickerRequests = MutableStateFlow<SharePickerRequest?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         handleIntent(intent)
         enableEdgeToEdge()
         setContent {
-            VrkaRoot(vrkaApplication.downloads, openQueueRequests, sharedUrls)
+            VrkaRoot(
+                manager = vrkaApplication.downloads,
+                openQueueRequests = openQueueRequests,
+                sharedUrl = sharedUrls,
+                sharePickerRequest = sharePickerRequests,
+            )
         }
     }
 
@@ -37,6 +49,7 @@ class MainActivity : ComponentActivity() {
             intent.removeExtra(EXTRA_OPEN_QUEUE)
         }
 
+        val isShare = intent.action == Intent.ACTION_SEND
         val rawText = when (intent.action) {
             Intent.ACTION_SEND -> intent.getStringExtra(Intent.EXTRA_TEXT)
             Intent.ACTION_VIEW -> intent.dataString
@@ -45,7 +58,12 @@ class MainActivity : ComponentActivity() {
 
         val extracted = UrlExtractor.extractUrl(rawText)
         if (!extracted.isNullOrBlank()) {
-            sharedUrls.value = extracted
+            if (isShare) {
+                val hint = UrlExtractor.extractTitleHint(rawText)
+                sharePickerRequests.value = SharePickerRequest(url = extracted, titleHint = hint)
+            } else {
+                sharedUrls.value = extracted
+            }
             intent.removeExtra(EXTRA_URL)
             intent.removeExtra(Intent.EXTRA_TEXT)
         }
@@ -67,5 +85,14 @@ object UrlExtractor {
         val match = URL_REGEX.find(text.trim())?.value ?: return null
         return match.trimEnd('.', ',', ';', '!', '?', ')', ']', '"', '\'')
     }
-}
 
+    fun extractTitleHint(text: String?): String? {
+        if (text.isNullOrBlank()) return null
+        val url = extractUrl(text) ?: return null
+        val withoutUrl = text.replace(url, "").trim()
+        val firstLine = withoutUrl.lineSequence()
+            .map { it.trim().trim('"', '\'', ':', '-', '—') }
+            .firstOrNull { it.isNotBlank() }
+        return firstLine?.takeIf { it.length in 3..180 }
+    }
+}

@@ -72,12 +72,15 @@ fun VrkaRoot(
     manager: VrkaDownloadManager,
     openQueueRequests: StateFlow<Long>,
     sharedUrl: StateFlow<String?> = remember { kotlinx.coroutines.flow.MutableStateFlow(null) },
+    sharePickerRequest: StateFlow<SharePickerRequest?> = remember { kotlinx.coroutines.flow.MutableStateFlow(null) },
 ) {
     val context = LocalContext.current
     val jobs by manager.jobs.collectAsStateWithLifecycle()
     val openQueueToken by openQueueRequests.collectAsStateWithLifecycle()
     val incomingUrl by sharedUrl.collectAsStateWithLifecycle()
+    val incomingPickerRequest by sharePickerRequest.collectAsStateWithLifecycle()
     var sharedUrlForHome by remember { mutableStateOf<String?>(null) }
+    var activeSharePicker by remember { mutableStateOf<SharePickerRequest?>(null) }
     val settings by manager.settingsRepository.settings.collectAsStateWithLifecycle()
     val runtime by manager.runtime.collectAsStateWithLifecycle()
     val diagnostics by manager.diagnostics.collectAsStateWithLifecycle()
@@ -91,6 +94,7 @@ fun VrkaRoot(
     )
     val destination = destinations[pagerState.currentPage]
     var pendingRequest by remember { mutableStateOf<DownloadRequest?>(null) }
+    var pendingRequestTitle by remember { mutableStateOf("") }
     var pendingAppUpdate by remember { mutableStateOf<AppReleaseInfo?>(null) }
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -107,16 +111,23 @@ fun VrkaRoot(
         }
     }
 
+    LaunchedEffect(incomingPickerRequest) {
+        if (incomingPickerRequest != null) {
+            activeSharePicker = incomingPickerRequest
+        }
+    }
+
     val notificationPermission = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) {
-        pendingRequest?.let(manager::enqueue)
+        pendingRequest?.let { req -> manager.enqueue(req, pendingRequestTitle) }
         pendingRequest = null
+        pendingRequestTitle = ""
         pendingAppUpdate?.let(manager.appUpdateManager::downloadAndInstall)
         pendingAppUpdate = null
     }
 
-    fun enqueue(request: DownloadRequest) {
+    fun enqueue(request: DownloadRequest, title: String = "") {
         val needsPermission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(
                 context,
@@ -124,9 +135,10 @@ fun VrkaRoot(
             ) != PackageManager.PERMISSION_GRANTED
         if (needsPermission) {
             pendingRequest = request
+            pendingRequestTitle = title
             notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
         } else {
-            manager.enqueue(request)
+            manager.enqueue(request, title)
         }
         scope.launch {
             pagerState.animateScrollToPage(destinations.indexOf(VrkaDestination.QUEUE))
@@ -251,6 +263,9 @@ fun VrkaRoot(
                                         .fillMaxSize()
                                         .statusBarsPadding(),
                                     onEnqueue = handleEnqueue,
+                                    onOpenFormatPicker = { targetUrl ->
+                                        activeSharePicker = SharePickerRequest(url = targetUrl)
+                                    },
                                     onUpdateDownloadLocation = { uri, mode, configured ->
                                         scope.launch {
                                             manager.settingsRepository.setDownloadLocation(uri, mode, configured)
@@ -393,6 +408,25 @@ fun VrkaRoot(
                         dialogData = dialogData,
                         onUpdateNow = { manager.componentUpdateManager.applyAllUpdates(settings.updatePreference) },
                         onDismiss = manager.componentUpdateManager::dismissStartupDialog,
+                    )
+                }
+
+                activeSharePicker?.let { req ->
+                    ShareFormatPickerSheet(
+                        url = req.url,
+                        manager = manager,
+                        titleHint = req.titleHint,
+                        onDismiss = {
+                            activeSharePicker = null
+                        },
+                        onEnqueue = { downloadRequest, title ->
+                            enqueue(downloadRequest, title)
+                            activeSharePicker = null
+                            scope.launch {
+                                val label = if (title.isNotBlank()) title else downloadRequest.quality.label
+                                snackbar.showSnackbar("Added to queue: $label")
+                            }
+                        },
                     )
                 }
             }

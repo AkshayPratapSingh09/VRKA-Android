@@ -64,6 +64,7 @@ internal fun HomeScreen(
     initialUrl: String? = null,
     onInitialUrlConsumed: () -> Unit = {},
     onEnqueue: (DownloadRequest) -> Unit,
+    onOpenFormatPicker: (String) -> Unit = {},
     onUpdateDownloadLocation: (uri: String, mode: SaveLocationMode, configured: Boolean) -> Unit = { _, _, _ -> },
 ) {
     val context = LocalContext.current
@@ -692,6 +693,26 @@ internal fun HomeScreen(
         )
 
         Spacer(Modifier.height(20.dp))
+
+        if (url.isNotBlank() && CustomCommandPolicy.isHttpUrl(url)) {
+            OutlinedButton(
+                onClick = { onOpenFormatPicker(url) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(16.dp),
+                border = BorderStroke(1.dp, VrkaTokens.Accent),
+            ) {
+                Text(
+                    text = "Choose Format & Quality",
+                    fontFamily = VrkaSansFamily,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = VrkaTokens.Accent,
+                )
+            }
+            Spacer(Modifier.height(10.dp))
+        }
 
         VrkaPrimaryButton(
             text = "Add to Queue",

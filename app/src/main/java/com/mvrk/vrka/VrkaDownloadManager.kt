@@ -178,7 +178,7 @@ class VrkaDownloadManager(
         }
     }
 
-    fun enqueue(request: DownloadRequest): String {
+    fun enqueue(request: DownloadRequest, initialTitle: String = ""): String {
         require(isHttpUrl(request.url)) { "Enter a valid http or https URL." }
         val settings = settingsRepository.settings.value
         val selectedTemplate = if (settings.customCommandMode) {
@@ -192,12 +192,21 @@ class VrkaDownloadManager(
             commandTemplateArguments = selectedTemplate?.arguments.orEmpty(),
         )
         val id = UUID.randomUUID().toString()
-        val job = DownloadJob(id = id, request = queuedRequest)
+        val job = DownloadJob(id = id, request = queuedRequest, title = initialTitle)
         mutate(persist = true) { listOf(job) + it }
         pendingQueue.add(id)
         triggerScheduler()
         return id
     }
+
+    suspend fun probeMediaFormats(
+        url: String,
+        onProgress: (elapsedSec: Int, stage: String) -> Unit = { _, _ -> },
+    ): Result<ProbedMediaDetails> = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+        ensureInitialized()
+        ShareFormatExtractor.probeUrl(context, url, onProgress)
+    }
+
 
     fun retry(jobId: String): String? {
         val previous = _jobs.value.firstOrNull { it.id == jobId } ?: return null
