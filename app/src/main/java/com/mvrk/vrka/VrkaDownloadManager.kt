@@ -178,7 +178,12 @@ class VrkaDownloadManager(
         }
     }
 
-    fun enqueue(request: DownloadRequest, initialTitle: String = ""): String {
+    fun enqueue(
+        request: DownloadRequest,
+        initialTitle: String = "",
+        uploader: String = "",
+        thumbnailUrl: String? = null,
+    ): String {
         require(isHttpUrl(request.url)) { "Enter a valid http or https URL." }
         val settings = settingsRepository.settings.value
         val selectedTemplate = if (settings.customCommandMode) {
@@ -192,7 +197,13 @@ class VrkaDownloadManager(
             commandTemplateArguments = selectedTemplate?.arguments.orEmpty(),
         )
         val id = UUID.randomUUID().toString()
-        val job = DownloadJob(id = id, request = queuedRequest, title = initialTitle)
+        val job = DownloadJob(
+            id = id,
+            request = queuedRequest,
+            title = initialTitle,
+            uploader = uploader,
+            thumbnailUrl = thumbnailUrl,
+        )
         mutate(persist = true) { listOf(job) + it }
         pendingQueue.add(id)
         triggerScheduler()
@@ -220,6 +231,8 @@ class VrkaDownloadManager(
             id = id,
             request = request,
             title = previous.title,
+            uploader = previous.uploader,
+            thumbnailUrl = previous.thumbnailUrl,
             detail = "Queued retry",
             attempt = previous.attempt + 1,
         )
@@ -474,9 +487,16 @@ class VrkaDownloadManager(
                 if (isCancelled(jobId)) return
                 if (metadata != null) {
                     val title = metadata.title?.take(180).orEmpty()
-                    if (title.isNotBlank()) {
-                        update(jobId, title = title, detail = "Source ready", persist = true)
-                    }
+                    val author = metadata.uploader?.take(80) ?: metadata.uploaderId?.take(80)
+                    val thumb = metadata.thumbnail
+                    update(
+                        jobId,
+                        title = if (title.isNotBlank()) title else null,
+                        uploader = if (!author.isNullOrBlank()) author else null,
+                        thumbnailUrl = if (!thumb.isNullOrBlank()) thumb else null,
+                        detail = "Source ready",
+                        persist = true,
+                    )
                 }
 
                 job = current(jobId) ?: return
@@ -786,7 +806,9 @@ class VrkaDownloadManager(
                 val isCommandLineEcho = line.startsWith("[debug]", ignoreCase = true) ||
                     line.contains("--print", ignoreCase = true) ||
                     line.contains("before_dl:", ignoreCase = true) ||
-                    line.contains("%(title)s", ignoreCase = true)
+                    line.contains("%(title)s", ignoreCase = true) ||
+                    line.contains("%(uploader", ignoreCase = true) ||
+                    line.contains("%(thumbnail", ignoreCase = true)
 
                 if (!isCommandLineEcho && (TRANSFER_STARTED_MARKERS.any { line.contains(it, ignoreCase = true) } || progress > 0f)) {
                     transferStarted = true
@@ -796,6 +818,20 @@ class VrkaDownloadManager(
                     val parsedTitle = line.substringAfter("__VRKA_TITLE__").substringAfter("__vrka_title__").trim()
                     if (parsedTitle.isNotBlank()) {
                         update(job.id, title = parsedTitle)
+                    }
+                }
+
+                if (!isCommandLineEcho && line.contains("__VRKA_UPLOADER__", ignoreCase = true)) {
+                    val parsedUploader = line.substringAfter("__VRKA_UPLOADER__").substringAfter("__vrka_uploader__").trim()
+                    if (parsedUploader.isNotBlank()) {
+                        update(job.id, uploader = parsedUploader)
+                    }
+                }
+
+                if (!isCommandLineEcho && line.contains("__VRKA_THUMB__", ignoreCase = true)) {
+                    val parsedThumb = line.substringAfter("__VRKA_THUMB__").substringAfter("__vrka_thumb__").trim()
+                    if (parsedThumb.isNotBlank()) {
+                        update(job.id, thumbnailUrl = parsedThumb)
                     }
                 }
 
@@ -1276,6 +1312,8 @@ class VrkaDownloadManager(
         jobId: String,
         state: JobState? = null,
         title: String? = null,
+        uploader: String? = null,
+        thumbnailUrl: String? = null,
         detail: String? = null,
         progress: Float? = null,
         speed: String? = null,
@@ -1291,6 +1329,8 @@ class VrkaDownloadManager(
                 if (job.id != jobId) job else job.copy(
                     state = state ?: job.state,
                     title = title ?: job.title,
+                    uploader = uploader ?: job.uploader,
+                    thumbnailUrl = thumbnailUrl ?: job.thumbnailUrl,
                     detail = detail ?: job.detail,
                     progress = progress ?: job.progress,
                     speed = speed ?: job.speed,

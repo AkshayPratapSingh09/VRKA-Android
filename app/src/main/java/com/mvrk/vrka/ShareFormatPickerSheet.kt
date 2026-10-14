@@ -60,9 +60,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -74,8 +72,6 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.net.HttpURLConnection
-import java.net.URL
 
 private val SheetBackground = Color(0xFF17181C)
 private val SurfaceCardColor = Color(0xFF202227)
@@ -94,7 +90,7 @@ fun ShareFormatPickerSheet(
     manager: VrkaDownloadManager,
     titleHint: String? = null,
     onDismiss: () -> Unit,
-    onEnqueue: (DownloadRequest, String) -> Unit,
+    onEnqueue: (request: DownloadRequest, title: String, uploader: String, thumbnailUrl: String?) -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
@@ -230,7 +226,12 @@ fun ShareFormatPickerSheet(
                                 )
                             }
                             scope.launch { sheetState.hide() }.invokeOnCompletion {
-                                onEnqueue(request, state.details.title)
+                                onEnqueue(
+                                    request,
+                                    state.details.title,
+                                    state.details.author.orEmpty(),
+                                    state.details.thumbnailUrl,
+                                )
                                 onDismiss()
                             }
                         }
@@ -280,7 +281,12 @@ fun ShareFormatPickerSheet(
                                     )
                                 }
                                 scope.launch { sheetState.hide() }.invokeOnCompletion {
-                                    onEnqueue(request, state.details.title)
+                                    onEnqueue(
+                                        request,
+                                        state.details.title,
+                                        state.details.author.orEmpty(),
+                                        state.details.thumbnailUrl,
+                                    )
                                     onDismiss()
                                 }
                             }
@@ -536,9 +542,7 @@ private fun FormatOptionCard(
     val badgeText = if (option.isRecommended) Color(0xFF17181C) else TextPrimaryColor
 
     Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         color = SurfaceCardColor,
         border = BorderStroke(1.dp, borderColor),
@@ -620,65 +624,22 @@ private fun FormatOptionCard(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // Action puck
+            // Action puck - ONLY clicking this icon starts the download
             Box(
                 modifier = Modifier
-                    .size(34.dp)
-                    .background(MintAccent, CircleShape),
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(MintAccent)
+                    .clickable(onClick = onClick),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_download),
                     contentDescription = "Enqueue",
                     tint = Color(0xFF17181C),
-                    modifier = Modifier.size(16.dp),
+                    modifier = Modifier.size(18.dp),
                 )
             }
-        }
-    }
-}
-
-@Composable
-fun AsyncThumbnail(
-    url: String?,
-    modifier: Modifier = Modifier,
-) {
-    var bitmap by remember(url) { mutableStateOf<ImageBitmap?>(null) }
-
-    LaunchedEffect(url) {
-        if (!url.isNullOrBlank()) {
-            withContext(Dispatchers.IO) {
-                runCatching {
-                    val connection = URL(url).openConnection() as HttpURLConnection
-                    connection.connectTimeout = 6000
-                    connection.readTimeout = 6000
-                    connection.inputStream.use { stream ->
-                        BitmapFactory.decodeStream(stream)?.asImageBitmap()
-                    }
-                }.getOrNull()
-            }?.let { bitmap = it }
-        }
-    }
-
-    Box(
-        modifier = modifier.background(Color(0xFF22242B)),
-        contentAlignment = Alignment.Center,
-    ) {
-        val currentBitmap = bitmap
-        if (currentBitmap != null) {
-            Image(
-                bitmap = currentBitmap,
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop,
-            )
-        } else {
-            Icon(
-                painter = painterResource(R.drawable.ic_download),
-                contentDescription = null,
-                tint = Color(0xFF4C4E57),
-                modifier = Modifier.size(20.dp),
-            )
         }
     }
 }

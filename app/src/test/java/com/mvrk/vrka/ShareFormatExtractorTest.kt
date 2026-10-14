@@ -34,12 +34,15 @@ class ShareFormatExtractorTest {
 
         assertTrue(fallback.isFallback)
         assertEquals("youtube.com", fallback.author)
-        assertEquals(4, fallback.videoOptions.size)
+        assertEquals(7, fallback.videoOptions.size)
         assertEquals("1080p Full HD", fallback.videoOptions[0].label)
         assertEquals(VideoQuality.P1080, fallback.videoOptions[0].quality)
         assertEquals(VideoQuality.P720, fallback.videoOptions[1].quality)
         assertEquals(VideoQuality.P480, fallback.videoOptions[2].quality)
         assertEquals(VideoQuality.P360, fallback.videoOptions[3].quality)
+        assertEquals(VideoQuality.P240, fallback.videoOptions[4].quality)
+        assertEquals(VideoQuality.P144, fallback.videoOptions[5].quality)
+        assertEquals(VideoQuality.P120, fallback.videoOptions[6].quality)
 
         assertEquals(4, fallback.audioOptions.size)
         assertEquals(AudioFormat.MP3, fallback.audioOptions[0].audioFormat)

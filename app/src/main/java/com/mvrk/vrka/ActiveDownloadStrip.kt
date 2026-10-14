@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -81,19 +82,32 @@ internal fun ActiveDownloadStrip(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Surface(
-                    shape = CircleShape,
-                    color = VrkaTokens.AccentContainer,
-                    border = BorderStroke(1.dp, VrkaTokens.BorderActive),
-                    modifier = Modifier.size(34.dp),
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_download),
-                            contentDescription = null,
-                            tint = VrkaTokens.AccentLight,
-                            modifier = Modifier.size(17.dp),
+                if (!job.thumbnailUrl.isNullOrBlank()) {
+                    Box(
+                        modifier = Modifier
+                            .size(width = 52.dp, height = 34.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                    ) {
+                        AsyncThumbnail(
+                            url = job.thumbnailUrl,
+                            modifier = Modifier.fillMaxSize(),
                         )
+                    }
+                } else {
+                    Surface(
+                        shape = CircleShape,
+                        color = VrkaTokens.AccentContainer,
+                        border = BorderStroke(1.dp, VrkaTokens.BorderActive),
+                        modifier = Modifier.size(34.dp),
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_download),
+                                contentDescription = null,
+                                tint = VrkaTokens.AccentLight,
+                                modifier = Modifier.size(17.dp),
+                            )
+                        }
                     }
                 }
 
@@ -111,6 +125,21 @@ internal fun ActiveDownloadStrip(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
+                        if (job.uploader.isNotBlank()) {
+                            Text(
+                                text = job.uploader,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = VrkaTokens.TextSecondary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f, fill = false),
+                            )
+                            Text(
+                                text = "•",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = VrkaTokens.TextTertiary,
+                            )
+                        }
                         Text(
                             text = jobStatusLabel(job),
                             style = MaterialTheme.typography.labelSmall,

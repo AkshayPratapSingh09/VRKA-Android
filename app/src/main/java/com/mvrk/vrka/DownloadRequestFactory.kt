@@ -88,6 +88,8 @@ internal object DownloadRequestFactory {
             addOption("--legacy-server-connect")
             addOption("--concurrent-fragments", "4")
             addOption("--print", "before_dl:__VRKA_TITLE__%(title)s")
+            addOption("--print", "before_dl:__VRKA_UPLOADER__%(uploader|uploader_id|)s")
+            addOption("--print", "before_dl:__VRKA_THUMB__%(thumbnail|)s")
             addOption("--print", "after_move:$outputMarker%(filepath)s")
             val stagingTemplate = if (options.isPlaylist) {
                 "%(playlist_index|0)03d-%(title).96B.%(ext)s"

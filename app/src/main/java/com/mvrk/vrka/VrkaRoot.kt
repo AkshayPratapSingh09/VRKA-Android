@@ -95,6 +95,8 @@ fun VrkaRoot(
     val destination = destinations[pagerState.currentPage]
     var pendingRequest by remember { mutableStateOf<DownloadRequest?>(null) }
     var pendingRequestTitle by remember { mutableStateOf("") }
+    var pendingRequestUploader by remember { mutableStateOf("") }
+    var pendingRequestThumbnailUrl by remember { mutableStateOf<String?>(null) }
     var pendingAppUpdate by remember { mutableStateOf<AppReleaseInfo?>(null) }
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -120,14 +122,21 @@ fun VrkaRoot(
     val notificationPermission = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) {
-        pendingRequest?.let { req -> manager.enqueue(req, pendingRequestTitle) }
+        pendingRequest?.let { req -> manager.enqueue(req, pendingRequestTitle, pendingRequestUploader, pendingRequestThumbnailUrl) }
         pendingRequest = null
         pendingRequestTitle = ""
+        pendingRequestUploader = ""
+        pendingRequestThumbnailUrl = null
         pendingAppUpdate?.let(manager.appUpdateManager::downloadAndInstall)
         pendingAppUpdate = null
     }
 
-    fun enqueue(request: DownloadRequest, title: String = "") {
+    fun enqueue(
+        request: DownloadRequest,
+        title: String = "",
+        uploader: String = "",
+        thumbnailUrl: String? = null,
+    ) {
         val needsPermission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(
                 context,
@@ -136,9 +145,11 @@ fun VrkaRoot(
         if (needsPermission) {
             pendingRequest = request
             pendingRequestTitle = title
+            pendingRequestUploader = uploader
+            pendingRequestThumbnailUrl = thumbnailUrl
             notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
         } else {
-            manager.enqueue(request, title)
+            manager.enqueue(request, title, uploader, thumbnailUrl)
         }
         scope.launch {
             pagerState.animateScrollToPage(destinations.indexOf(VrkaDestination.QUEUE))
@@ -419,8 +430,8 @@ fun VrkaRoot(
                         onDismiss = {
                             activeSharePicker = null
                         },
-                        onEnqueue = { downloadRequest, title ->
-                            enqueue(downloadRequest, title)
+                        onEnqueue = { downloadRequest, title, uploader, thumbnailUrl ->
+                            enqueue(downloadRequest, title, uploader, thumbnailUrl)
                             activeSharePicker = null
                             scope.launch {
                                 val label = if (title.isNotBlank()) title else downloadRequest.quality.label

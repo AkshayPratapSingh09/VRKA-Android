@@ -60,6 +60,8 @@ class JobStorePersistenceTest {
                 request = sampleRequest("https://example.com/video/$i"),
                 state = JobState.DONE,
                 title = "Video Title $i",
+                uploader = "Creator $i",
+                thumbnailUrl = "https://example.com/thumb/$i.jpg",
                 detail = "Saved to storage",
                 progress = 1.0f,
                 speed = "15 MB/s",
@@ -92,6 +94,8 @@ class JobStorePersistenceTest {
             assertEquals(original.request.h264CompatibilityMode, loaded.request.h264CompatibilityMode)
             assertEquals(JobState.DONE, loaded.state)
             assertEquals(original.title, loaded.title)
+            assertEquals(original.uploader, loaded.uploader)
+            assertEquals(original.thumbnailUrl, loaded.thumbnailUrl)
             assertEquals(original.progress, loaded.progress, 0.001f)
             assertEquals(original.outputUris, loaded.outputUris)
         }

@@ -65,6 +65,8 @@ internal class JobStore(private val target: File) {
             .put("id", job.id)
             .put("state", job.state.name)
             .put("title", job.title)
+            .put("uploader", job.uploader)
+            .put("thumbnailUrl", job.thumbnailUrl)
             .put("detail", job.detail)
             .put("progress", job.progress.toDouble())
             .put("speed", job.speed)
@@ -190,6 +192,8 @@ internal class JobStore(private val target: File) {
             ),
             state = restoredState,
             title = value.optString("title"),
+            uploader = value.optString("uploader", ""),
+            thumbnailUrl = value.optString("thumbnailUrl").takeIf { it.isNotBlank() && it != "null" },
             detail = if (savedState.isTerminal) {
                 value.optString("detail")
             } else {

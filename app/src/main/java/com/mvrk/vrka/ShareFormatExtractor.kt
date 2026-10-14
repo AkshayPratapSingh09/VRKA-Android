@@ -96,6 +96,9 @@ object ShareFormatExtractor {
             720 -> 1800L
             480 -> 900L
             360 -> 500L
+            240 -> 300L
+            144 -> 150L
+            120 -> 100L
             else -> 2500L
         }
         val estimatedBytes = (avgBitrateKbps * 1000L / 8L) * durationSeconds
@@ -146,6 +149,27 @@ object ShareFormatExtractor {
                     label = "360p Standard",
                     sublabel = "MP4 • Video + Audio",
                     quality = VideoQuality.P360,
+                ),
+                ProbedFormatOption(
+                    id = "video_240p",
+                    mode = MediaMode.VIDEO,
+                    label = "240p Compact",
+                    sublabel = "MP4 • Video + Audio",
+                    quality = VideoQuality.P240,
+                ),
+                ProbedFormatOption(
+                    id = "video_144p",
+                    mode = MediaMode.VIDEO,
+                    label = "144p Compact",
+                    sublabel = "MP4 • Video + Audio",
+                    quality = VideoQuality.P144,
+                ),
+                ProbedFormatOption(
+                    id = "video_120p",
+                    mode = MediaMode.VIDEO,
+                    label = "120p Ultra Low",
+                    sublabel = "MP4 • Video + Audio",
+                    quality = VideoQuality.P120,
                 ),
             ),
             audioOptions = listOf(
@@ -219,11 +243,14 @@ object ShareFormatExtractor {
             Triple(VideoQuality.P720, "720p HD", 700..999),
             Triple(VideoQuality.P480, "480p SD", 450..699),
             Triple(VideoQuality.P360, "360p Standard", 300..449),
+            Triple(VideoQuality.P240, "240p Compact", 180..299),
+            Triple(VideoQuality.P144, "144p Compact", 130..179),
+            Triple(VideoQuality.P120, "120p Ultra Low", 60..129),
         )
 
         for ((quality, label, range) in tiers) {
             val matchingStreams = videoStreams.filter { it.height in range }
-            if (matchingStreams.isNotEmpty() || (availableHeights.isEmpty() && quality.height in listOf(1080, 720, 480, 360))) {
+            if (matchingStreams.isNotEmpty() || (availableHeights.isEmpty() && quality.height in listOf(1080, 720, 480, 360, 240, 144, 120))) {
                 val bestStream = matchingStreams.maxByOrNull { it.fps }
                 val vSize = bestStream?.let {
                     it.fileSize.takeIf { s -> s > 0 } ?: it.fileSizeApproximate.takeIf { s -> s > 0 }
@@ -258,6 +285,9 @@ object ShareFormatExtractor {
                 Pair(VideoQuality.P720, "720p HD"),
                 Pair(VideoQuality.P480, "480p SD"),
                 Pair(VideoQuality.P360, "360p Standard"),
+                Pair(VideoQuality.P240, "240p Compact"),
+                Pair(VideoQuality.P144, "144p Compact"),
+                Pair(VideoQuality.P120, "120p Ultra Low"),
             ).forEach { (quality, label) ->
                 videoOptions.add(
                     ProbedFormatOption(

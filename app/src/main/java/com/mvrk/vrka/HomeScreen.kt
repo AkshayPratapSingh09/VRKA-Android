@@ -293,6 +293,9 @@ internal fun HomeScreen(
                             VideoQuality.P720 -> "720p HD"
                             VideoQuality.P480 -> "480p"
                             VideoQuality.P360 -> "360p"
+                            VideoQuality.P240 -> "240p"
+                            VideoQuality.P144 -> "144p"
+                            VideoQuality.P120 -> "120p"
                         }
                         VrkaChip(
                             selected = quality == item,

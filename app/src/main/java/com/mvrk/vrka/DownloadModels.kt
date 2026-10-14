@@ -46,6 +46,9 @@ enum class VideoQuality(val label: String, val height: Int?) {
     P720("720p", 720),
     P480("480p", 480),
     P360("360p", 360),
+    P240("240p", 240),
+    P144("144p", 144),
+    P120("120p", 120),
 }
 
 enum class AudioFormat(val label: String, val codec: String) {
@@ -115,6 +118,8 @@ data class DownloadJob(
     val request: DownloadRequest,
     val state: JobState = JobState.QUEUED,
     val title: String = "",
+    val uploader: String = "",
+    val thumbnailUrl: String? = null,
     val detail: String = "Waiting",
     val progress: Float = 0f,
     val speed: String = "",

@@ -577,6 +577,17 @@ private fun JobCard(
                     modifier = Modifier.padding(end = 8.dp),
                 )
             }
+            Box(
+                modifier = Modifier
+                    .padding(end = 12.dp)
+                    .size(width = 76.dp, height = 50.dp)
+                    .clip(RoundedCornerShape(8.dp)),
+            ) {
+                AsyncThumbnail(
+                    url = job.thumbnailUrl,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
             Column(modifier = Modifier.weight(1f)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -586,7 +597,7 @@ private fun JobCard(
                     Text(
                         text = job.title.ifBlank { sourceLabel(job.request.url) },
                         style = MaterialTheme.typography.titleSmall.copy(
-                            fontFamily = VrkaMonoFamily,
+                            fontFamily = VrkaSansFamily,
                             fontWeight = FontWeight.Bold,
                         ),
                         color = VrkaTokens.TextPrimary,
@@ -616,6 +627,21 @@ private fun JobCard(
                             maxLines = 1,
                         )
                     }
+                }
+
+                if (job.uploader.isNotBlank()) {
+                    Text(
+                        text = job.uploader,
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontFamily = VrkaSansFamily,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium,
+                        ),
+                        color = VrkaTokens.TextSecondary,
+                        modifier = Modifier.padding(top = 2.dp),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                 }
 
                 Text(
