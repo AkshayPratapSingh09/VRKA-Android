@@ -171,7 +171,10 @@ fun ShareFormatPickerSheet(
 
                 IconButton(
                     onClick = {
-                        scope.launch { sheetState.hide() }.invokeOnCompletion { onDismiss() }
+                        scope.launch {
+                            runCatching { sheetState.hide() }
+                            onDismiss()
+                        }
                     },
                     modifier = Modifier
                         .size(36.dp)
@@ -226,14 +229,15 @@ fun ShareFormatPickerSheet(
                                     embedThumbnail = true,
                                 )
                             }
-                            scope.launch { sheetState.hide() }.invokeOnCompletion {
-                                onEnqueue(
-                                    request,
-                                    state.details.title,
-                                    state.details.author.orEmpty(),
-                                    state.details.thumbnailUrl,
-                                    state.details.durationText,
-                                )
+                            onEnqueue(
+                                request,
+                                state.details.title,
+                                state.details.author.orEmpty(),
+                                state.details.thumbnailUrl,
+                                state.details.durationText,
+                            )
+                            scope.launch {
+                                runCatching { sheetState.hide() }
                                 onDismiss()
                             }
                         }
@@ -282,14 +286,15 @@ fun ShareFormatPickerSheet(
                                         embedThumbnail = true,
                                     )
                                 }
-                                scope.launch { sheetState.hide() }.invokeOnCompletion {
-                                    onEnqueue(
-                                        request,
-                                        state.details.title,
-                                        state.details.author.orEmpty(),
-                                        state.details.thumbnailUrl,
-                                        state.details.durationText,
-                                    )
+                                onEnqueue(
+                                    request,
+                                    state.details.title,
+                                    state.details.author.orEmpty(),
+                                    state.details.thumbnailUrl,
+                                    state.details.durationText,
+                                )
+                                scope.launch {
+                                    runCatching { sheetState.hide() }
                                     onDismiss()
                                 }
                             }
