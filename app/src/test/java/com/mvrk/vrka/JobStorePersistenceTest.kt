@@ -71,6 +71,8 @@ class JobStorePersistenceTest {
                 outputUris = listOf("content://media/external/video/media/$i"),
                 error = "",
                 attempt = 1,
+                downloadedBytes = 1024L * 1024L * i,
+                totalBytes = 1024L * 1024L * i,
             )
         }
 
@@ -98,6 +100,8 @@ class JobStorePersistenceTest {
             assertEquals(original.thumbnailUrl, loaded.thumbnailUrl)
             assertEquals(original.progress, loaded.progress, 0.001f)
             assertEquals(original.outputUris, loaded.outputUris)
+            assertEquals(original.downloadedBytes, loaded.downloadedBytes)
+            assertEquals(original.totalBytes, loaded.totalBytes)
         }
     }
 

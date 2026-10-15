@@ -210,11 +210,23 @@ object ShareFormatExtractor {
         )
     }
 
+    private val rawChannelIdPattern = Regex("""^UC[a-zA-Z0-9_-]{20,24}$""")
+
+    fun cleanAuthor(raw: String?): String? {
+        if (raw.isNullOrBlank()) return null
+        val trimmed = raw.trim()
+        if (rawChannelIdPattern.matches(trimmed)) return null
+        return trimmed.take(80)
+    }
+
     fun parseVideoInfo(url: String, info: VideoInfo): ProbedMediaDetails {
+        val host = runCatching { URI(url).host?.removePrefix("www.") }.getOrNull()
         val title = info.title?.take(200)?.ifBlank { null }
-            ?: runCatching { URI(url).host?.removePrefix("www.") }.getOrNull()
+            ?: host
             ?: "Media Download"
-        val author = info.uploader?.take(80) ?: info.uploaderId?.take(80)
+        val author = cleanAuthor(info.uploader)
+            ?: cleanAuthor(info.uploaderId)
+            ?: host
         val duration = info.duration.takeIf { it > 0 }
         val durationText = formatDuration(duration)
         val thumbnail = info.thumbnail

@@ -54,6 +54,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -681,6 +682,7 @@ fun VrkaFloatingNavBar(
     onDestinationSelected: (VrkaDestination) -> Unit,
     modifier: Modifier = Modifier,
     pagerPosition: Float? = null,
+    pagerPositionProvider: (() -> Float)? = null,
 ) {
     val density = LocalDensity.current
     val haptic = LocalHapticFeedback.current
@@ -759,25 +761,20 @@ fun VrkaFloatingNavBar(
     var pendingPagerSyncTarget by remember { mutableIntStateOf(-1) }
     var itemBounds by remember { mutableStateOf(List(destinations.size) { NavItemMeasuredBounds() }) }
 
-    LaunchedEffect(pagerPosition, selectedIndex, pendingPagerSyncFrom, pendingPagerSyncTarget, isDragging) {
+    val activeProvider = pagerPositionProvider ?: pagerPosition?.let { { it } }
+
+    LaunchedEffect(activeProvider, selectedIndex, isDragging) {
         if (!isDragging) {
-            val target = (pagerPosition ?: selectedIndex.toFloat())
-                .coerceIn(0f, destinations.lastIndex.toFloat())
-            val waitingFrom = pendingPagerSyncFrom
-            if (waitingFrom != null && pendingPagerSyncTarget >= 0 && pagerPosition != null &&
-                kotlin.math.abs(pagerPosition - waitingFrom) < 0.015f &&
-                kotlin.math.abs(pagerPosition - pendingPagerSyncTarget.toFloat()) >= 0.015f
-            ) {
-                return@LaunchedEffect
-            }
-            pendingPagerSyncFrom = null
-            pendingPagerSyncTarget = -1
-            if (pagerPosition != null) {
-                indicatorPosition.snapTo(target)
+            if (activeProvider != null) {
+                snapshotFlow { activeProvider() }
+                    .collect { pos ->
+                        val target = pos.coerceIn(0f, destinations.lastIndex.toFloat())
+                        indicatorPosition.snapTo(target)
+                    }
             } else {
                 indicatorPosition.animateTo(
-                    targetValue = target,
-                    animationSpec = tween(durationMillis = 240, easing = FastOutSlowInEasing),
+                    targetValue = selectedIndex.toFloat(),
+                    animationSpec = tween(durationMillis = 260, easing = FastOutSlowInEasing),
                 )
             }
         }
@@ -941,55 +938,23 @@ fun VrkaFloatingNavBar(
                             .width(with(density) { indicatorBounds.widthPx.toDp() })
                             .height(NAV_INDICATOR_HEIGHT)
                             .align(Alignment.CenterStart)
-                            .offset { IntOffset(indicatorBounds.leftPx.roundToInt(), 0) }
-                            .then(
-                                if (backdrop != null && isRenderEffectSupported()) {
-                                    Modifier.drawBackdrop(
-                                        backdrop = backdrop,
-                                        shape = { RoundedCornerShape(NAV_INDICATOR_CORNER_RADIUS) },
-                                        effects = {
-                                            blur(with(density) { 0.5.dp.toPx() })
-                                            if (isRuntimeShaderSupported()) {
-                                                lens(
-                                                    refractionHeight = with(density) { 20.dp.toPx() },
-                                                    refractionAmount = with(density) { 14.dp.toPx() },
-                                                    magnification = 1.35f,
-                                                    depthEffect = true,
-                                                    chromaticAberration = true,
-                                                )
-                                            }
-                                        },
-                                        highlight = {
-                                            Highlight(
-                                                width = 1.2.dp,
-                                                style = HighlightStyle.Default(
-                                                    color = Color.White.copy(alpha = if (colors.isLight) 0.45f else 0.40f),
-                                                    angle = 50f,
-                                                ),
-                                            )
-                                        },
-                                        shadow = null,
-                                        onDrawSurface = {
-                                            val lensSheen = if (colors.isLight) {
-                                                Color.White.copy(alpha = 0.08f)
-                                            } else {
-                                                Color.White.copy(alpha = 0.05f)
-                                            }
-                                            drawRect(color = lensSheen)
-                                        },
-                                        backdropScale = 1f,
-                                    )
+                            .graphicsLayer {
+                                translationX = indicatorBounds.leftPx
+                            }
+                            .clip(RoundedCornerShape(NAV_INDICATOR_CORNER_RADIUS))
+                            .background(
+                                if (colors.isLight) {
+                                    puckTintColor.copy(alpha = 0.94f)
                                 } else {
-                                    Modifier.background(
-                                        if (colors.isLight) Color(0x30FFFFFF) else Color(0x20FFFFFF),
-                                        RoundedCornerShape(NAV_INDICATOR_CORNER_RADIUS),
-                                    )
+                                    puckTintColor.copy(alpha = 0.82f)
                                 }
                             )
-                            .clip(RoundedCornerShape(NAV_INDICATOR_CORNER_RADIUS))
-                            .border(1.dp, puckBorderBrush, RoundedCornerShape(NAV_INDICATOR_CORNER_RADIUS)),
+                            .border(
+                                width = 1.dp,
+                                brush = puckBorderBrush,
+                                shape = RoundedCornerShape(NAV_INDICATOR_CORNER_RADIUS),
+                            ),
                     )
-
                 }
             }
 

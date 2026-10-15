@@ -633,6 +633,7 @@ private fun FormatOptionCard(
             Spacer(modifier = Modifier.width(8.dp))
 
             // Action puck - ONLY clicking this icon starts the download
+            val isLightMode = LocalVrkaColors.current.isLight
             Box(
                 modifier = Modifier
                     .size(40.dp)
@@ -644,7 +645,7 @@ private fun FormatOptionCard(
                 Icon(
                     painter = painterResource(R.drawable.ic_download),
                     contentDescription = "Enqueue",
-                    tint = Color(0xFF17181C),
+                    tint = if (isLightMode) Color.White else Color(0xFF17181C),
                     modifier = Modifier.size(18.dp),
                 )
             }
@@ -660,12 +661,15 @@ private fun ModeTabItem(
     onSelect: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val isLightMode = LocalVrkaColors.current.isLight
     val bg by animateColorAsState(
         targetValue = if (isSelected) MintAccent else Color.Transparent,
         label = "tabBg_${mode.name}",
     )
     val textCol by animateColorAsState(
-        targetValue = if (isSelected) Color(0xFF17181C) else TextSecondaryColor,
+        targetValue = if (isSelected) {
+            if (isLightMode) Color.White else Color(0xFF17181C)
+        } else TextSecondaryColor,
         label = "tabText_${mode.name}",
     )
 

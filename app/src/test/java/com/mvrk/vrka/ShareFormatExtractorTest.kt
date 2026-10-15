@@ -69,4 +69,27 @@ class ShareFormatExtractorTest {
         assertEquals("https://www.youtube.com/watch?v=test123", extractedUrl)
         assertEquals(null, extractedTitle)
     }
+
+    @Test
+    fun testCleanAuthor() {
+        assertEquals("Rick Astley", ShareFormatExtractor.cleanAuthor("Rick Astley"))
+        assertEquals(null, ShareFormatExtractor.cleanAuthor("UCq-Fj5jknLsUf-MWSy4_brA"))
+        assertEquals(null, ShareFormatExtractor.cleanAuthor("UC7_YxT-KID8EvlYun83StIQ"))
+        assertEquals(null, ShareFormatExtractor.cleanAuthor(""))
+        assertEquals(null, ShareFormatExtractor.cleanAuthor(null))
+    }
+
+    @Test
+    fun testFormatSizeDoneAndLeft() {
+        val total = 120L * 1024L * 1024L
+        val done = 45L * 1024L * 1024L
+        val formatted = formatSizeDoneAndLeft(done, total)
+        assertEquals("45.0 MB / 120.0 MB (75.0 MB left)", formatted)
+
+        val doneOnly = formatSizeDoneAndLeft(15L * 1024L * 1024L, 0L)
+        assertEquals("15.0 MB done", doneOnly)
+
+        val none = formatSizeDoneAndLeft(0L, 0L)
+        assertEquals(null, none)
+    }
 }

@@ -735,13 +735,30 @@ private fun JobCard(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(
-                            text = "${job.progress.toInt()}%",
-                            fontFamily = VrkaMonoFamily,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = VrkaTokens.AccentLight,
-                        )
+                        val sizeStatus = formatSizeDoneAndLeft(job.downloadedBytes, job.totalBytes)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.weight(1f, fill = false),
+                        ) {
+                            Text(
+                                text = "${job.progress.toInt()}%",
+                                fontFamily = VrkaMonoFamily,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = VrkaTokens.AccentLight,
+                            )
+                            if (sizeStatus != null) {
+                                Text(
+                                    text = sizeStatus,
+                                    fontFamily = VrkaMonoFamily,
+                                    fontSize = 10.5.sp,
+                                    color = VrkaTokens.TextSecondary,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                        }
                         Text(
                             text = listOfNotNull(
                                 job.speed.takeIf(String::isNotBlank),
@@ -1121,3 +1138,15 @@ private fun stateColor(state: JobState): Color = when (state) {
 
 private fun sourceLabel(url: String): String =
     runCatching { Uri.parse(url).host }.getOrNull().orEmpty().ifBlank { "Untitled download" }
+
+internal fun formatSizeDoneAndLeft(downloadedBytes: Long, totalBytes: Long): String? {
+    if (totalBytes > 0L) {
+        val done = com.mvrk.vrka.engine.UnifiedProgressSnapshot.formatBytes(downloadedBytes)
+        val total = com.mvrk.vrka.engine.UnifiedProgressSnapshot.formatBytes(totalBytes)
+        val left = com.mvrk.vrka.engine.UnifiedProgressSnapshot.formatBytes(maxOf(0L, totalBytes - downloadedBytes))
+        return "$done / $total ($left left)"
+    } else if (downloadedBytes > 0L) {
+        return "${com.mvrk.vrka.engine.UnifiedProgressSnapshot.formatBytes(downloadedBytes)} done"
+    }
+    return null
+}

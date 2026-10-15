@@ -77,6 +77,21 @@ class VrkaDownloadManager(
     private val publisher = OutputPublisher(context, settingsRepository)
     private val stagingRoot by lazy { File(context.getExternalFilesDir(null), "staging") }
     private val speedPattern = Regex("""\bat\s+([^\s]+/s)""", RegexOption.IGNORE_CASE)
+    private val totalSizePattern = Regex("""\bof\s+~?\s*([\d\.]+)\s*([KMGT]?i?B)\b""", RegexOption.IGNORE_CASE)
+    private val downloadedSizePattern = Regex("""\[download\]\s+~?\s*([\d\.]+)\s*([KMGT]?i?B)\b(?!\s*%)""", RegexOption.IGNORE_CASE)
+
+    private fun parseByteUnits(numberStr: String, unitStr: String): Long {
+        val number = numberStr.toDoubleOrNull() ?: return 0L
+        val multiplier = when (unitStr.uppercase()) {
+            "B" -> 1L
+            "KIB", "KB" -> 1024L
+            "MIB", "MB" -> 1024L * 1024L
+            "GIB", "GB" -> 1024L * 1024L * 1024L
+            "TIB", "TB" -> 1024L * 1024L * 1024L * 1024L
+            else -> 1L
+        }
+        return (number * multiplier).toLong()
+    }
 
     private val _jobs = MutableStateFlow<List<DownloadJob>>(
         runCatching { store.load().sortedByDescending(DownloadJob::createdAt) }.getOrDefault(emptyList())
@@ -797,6 +812,8 @@ class VrkaDownloadManager(
         var lastUiUpdate = 0L
         val outputLines = mutableListOf<String>()
         var transferStarted = false
+        var currentTotalBytes = 0L
+        var currentDownloadedBytes = 0L
 
         val response = try {
             val includeSubtitles = job.request.resolvedMediaUrl == null
@@ -814,10 +831,32 @@ class VrkaDownloadManager(
                     line.contains("before_dl:", ignoreCase = true) ||
                     line.contains("%(title)s", ignoreCase = true) ||
                     line.contains("%(uploader", ignoreCase = true) ||
+                    line.contains("%(channel", ignoreCase = true) ||
                     line.contains("%(thumbnail", ignoreCase = true)
 
                 if (!isCommandLineEcho && (TRANSFER_STARTED_MARKERS.any { line.contains(it, ignoreCase = true) } || progress > 0f)) {
                     transferStarted = true
+                }
+
+                val totalMatch = totalSizePattern.find(line)
+                if (totalMatch != null) {
+                    val num = totalMatch.groupValues[1]
+                    val unit = totalMatch.groupValues[2]
+                    val parsedTotal = parseByteUnits(num, unit)
+                    if (parsedTotal > 0L) {
+                        currentTotalBytes = parsedTotal
+                        currentDownloadedBytes = (currentTotalBytes * (progress.coerceIn(0f, 100f) / 100.0)).toLong()
+                    }
+                } else {
+                    val dlMatch = downloadedSizePattern.find(line)
+                    if (dlMatch != null) {
+                        val num = dlMatch.groupValues[1]
+                        val unit = dlMatch.groupValues[2]
+                        val parsedDl = parseByteUnits(num, unit)
+                        if (parsedDl > 0L) {
+                            currentDownloadedBytes = parsedDl
+                        }
+                    }
                 }
 
                 if (!isCommandLineEcho && line.contains("__VRKA_TITLE__", ignoreCase = true)) {
@@ -829,8 +868,9 @@ class VrkaDownloadManager(
 
                 if (!isCommandLineEcho && line.contains("__VRKA_UPLOADER__", ignoreCase = true)) {
                     val parsedUploader = line.substringAfter("__VRKA_UPLOADER__").substringAfter("__vrka_uploader__").trim()
-                    if (parsedUploader.isNotBlank()) {
-                        update(job.id, uploader = parsedUploader)
+                    val clean = ShareFormatExtractor.cleanAuthor(parsedUploader)
+                    if (!clean.isNullOrBlank()) {
+                        update(job.id, uploader = clean)
                     }
                 }
 
@@ -866,6 +906,8 @@ class VrkaDownloadManager(
                             JobState.DOWNLOADING
                         },
                         progress = progress.coerceIn(0f, 100f),
+                        downloadedBytes = if (currentDownloadedBytes > 0L) currentDownloadedBytes else null,
+                        totalBytes = if (currentTotalBytes > 0L) currentTotalBytes else null,
                         speed = speedPattern.find(line)?.groupValues?.getOrNull(1).orEmpty(),
                         etaSeconds = eta.takeIf { it >= 0 },
                         detail = detail,
@@ -957,8 +999,10 @@ class VrkaDownloadManager(
             requireAudioStreams(job, outputs)
         }
         if (isCancelled(job.id)) throw CancellationException("Download cancelled")
+        val latestJob = current(job.id) ?: job
+        val totalFileBytes = outputs.sumOf { it.length() }
         val published = outputs.mapIndexed { index, file ->
-            val outputName = preferredOutputName(job, file, index, outputs.size)
+            val outputName = preferredOutputName(latestJob, file, index, outputs.size)
             publisher.publish(file, outputName, destinationTreeUri = job.request.destinationTreeUri).toString()
         }
         val isOpus = job.request.mode == MediaMode.AUDIO && job.request.audioFormat == AudioFormat.OPUS
@@ -975,6 +1019,8 @@ class VrkaDownloadManager(
             job.id,
             state = JobState.DONE,
             progress = 100f,
+            downloadedBytes = if (totalFileBytes > 0L) totalFileBytes else null,
+            totalBytes = if (totalFileBytes > 0L) totalFileBytes else null,
             detail = doneDetail,
             outputUris = published,
             error = "",
@@ -1047,6 +1093,8 @@ class VrkaDownloadManager(
                             update(
                                 job.id,
                                 progress = progress.percentage,
+                                downloadedBytes = progress.bytesRead,
+                                totalBytes = progress.totalBytes ?: 0L,
                                 speed = progress.speedBytesPerSec?.let { UnifiedProgressSnapshot.formatSpeed(it) }.orEmpty(),
                                 etaSeconds = progress.etaSeconds,
                                 detail = progress.detail.ifBlank { "Downloading stream" },
@@ -1077,14 +1125,17 @@ class VrkaDownloadManager(
                     } else {
                         requireAudioStreams(job, outputs)
                     }
+                    val latestJob = current(job.id) ?: job
                     val published = outputs.mapIndexed { index, file ->
-                        val outputName = preferredOutputName(job, file, index, outputs.size)
+                        val outputName = preferredOutputName(latestJob, file, index, outputs.size)
                         publisher.publish(file, outputName, destinationTreeUri = job.request.destinationTreeUri).toString()
                     }
                     update(
                         job.id,
                         state = JobState.DONE,
                         progress = 100f,
+                        downloadedBytes = result.totalBytes,
+                        totalBytes = result.totalBytes,
                         detail = if (published.size == 1) "Saved to Downloads/VRKA" else "Saved ${published.size} files",
                         outputUris = published,
                         error = "",
@@ -1256,9 +1307,18 @@ class VrkaDownloadManager(
     }
 
     private fun preferredOutputName(job: DownloadJob, file: File, index: Int, total: Int): String {
+        val fileNameStem = file.nameWithoutExtension.trim().takeIf {
+            it.isNotBlank() && !it.equals("media", ignoreCase = true) && !it.startsWith("VRKA-", ignoreCase = true)
+        }
         val title = job.title
             .trim()
-            .takeIf { it.isNotBlank() && it != "Browser verification" }
+            .takeIf {
+                it.isNotBlank() &&
+                it != "Browser verification" &&
+                !it.startsWith("Media link from", ignoreCase = true) &&
+                !it.equals("Media Download", ignoreCase = true)
+            }
+            ?: fileNameStem
         val host = runCatching { Uri.parse(job.request.url).host.orEmpty().removePrefix("www.") }
             .getOrDefault("")
             .takeIf(String::isNotBlank)
@@ -1323,6 +1383,8 @@ class VrkaDownloadManager(
         durationText: String? = null,
         detail: String? = null,
         progress: Float? = null,
+        downloadedBytes: Long? = null,
+        totalBytes: Long? = null,
         speed: String? = null,
         etaSeconds: Long? = null,
         outputUris: List<String>? = null,
@@ -1341,6 +1403,8 @@ class VrkaDownloadManager(
                     durationText = durationText ?: job.durationText,
                     detail = detail ?: job.detail,
                     progress = progress ?: job.progress,
+                    downloadedBytes = downloadedBytes ?: job.downloadedBytes,
+                    totalBytes = totalBytes ?: job.totalBytes,
                     speed = speed ?: job.speed,
                     etaSeconds = etaSeconds ?: job.etaSeconds,
                     outputUris = outputUris ?: job.outputUris,

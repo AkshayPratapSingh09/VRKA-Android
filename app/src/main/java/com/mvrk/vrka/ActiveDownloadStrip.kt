@@ -140,12 +140,29 @@ internal fun ActiveDownloadStrip(
                                 color = VrkaTokens.TextTertiary,
                             )
                         }
+                        val sizeStatus = formatSizeDoneAndLeft(job.downloadedBytes, job.totalBytes)
                         Text(
                             text = jobStatusLabel(job),
                             style = MaterialTheme.typography.labelSmall,
                             color = VrkaTokens.AccentLight,
                             fontWeight = FontWeight.SemiBold,
                         )
+                        if (sizeStatus != null) {
+                            Text(
+                                text = "•",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = VrkaTokens.TextTertiary,
+                            )
+                            Text(
+                                text = sizeStatus,
+                                fontFamily = VrkaMonoFamily,
+                                fontSize = 10.5.sp,
+                                color = VrkaTokens.TextSecondary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f, fill = false),
+                            )
+                        }
                         Text(
                             text = "•",
                             style = MaterialTheme.typography.labelSmall,

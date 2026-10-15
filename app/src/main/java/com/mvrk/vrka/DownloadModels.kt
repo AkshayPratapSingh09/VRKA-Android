@@ -132,6 +132,8 @@ data class DownloadJob(
     val attempt: Int = 1,
     val actualResolution: String? = null,
     val subtitleStatus: com.mvrk.vrka.subtitle.SubtitleStatus = com.mvrk.vrka.subtitle.SubtitleStatus.NONE,
+    val downloadedBytes: Long = 0L,
+    val totalBytes: Long = 0L,
 )
 
 enum class StreamSelectionState {

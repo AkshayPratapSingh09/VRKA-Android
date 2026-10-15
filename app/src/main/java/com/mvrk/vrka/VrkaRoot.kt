@@ -226,17 +226,16 @@ fun VrkaRoot(
                             override fun onPreScroll(
                                 available: androidx.compose.ui.geometry.Offset,
                                 source: androidx.compose.ui.input.nestedscroll.NestedScrollSource,
-                            ): androidx.compose.ui.geometry.Offset {
-                                screenBackdrop.invalidate()
-                                return androidx.compose.ui.geometry.Offset.Zero
-                            }
+                            ): androidx.compose.ui.geometry.Offset = androidx.compose.ui.geometry.Offset.Zero
 
                             override fun onPostScroll(
                                 consumed: androidx.compose.ui.geometry.Offset,
                                 available: androidx.compose.ui.geometry.Offset,
                                 source: androidx.compose.ui.input.nestedscroll.NestedScrollSource,
                             ): androidx.compose.ui.geometry.Offset {
-                                screenBackdrop.invalidate()
+                                if (consumed.y != 0f) {
+                                    screenBackdrop.invalidate()
+                                }
                                 return androidx.compose.ui.geometry.Offset.Zero
                             }
 
@@ -374,7 +373,10 @@ fun VrkaRoot(
                                 job = activeJob,
                                 onClick = {
                                     scope.launch {
-                                        pagerState.animateScrollToPage(destinations.indexOf(VrkaDestination.QUEUE))
+                                        pagerState.animateScrollToPage(
+                                            destinations.indexOf(VrkaDestination.QUEUE),
+                                            animationSpec = tween(durationMillis = 260, easing = FastOutSlowInEasing),
+                                        )
                                     }
                                 },
                             )
@@ -383,10 +385,13 @@ fun VrkaRoot(
 
                     VrkaFloatingNavBar(
                         selectedDestination = destination,
-                        pagerPosition = pagerState.currentPage + pagerState.currentPageOffsetFraction,
+                        pagerPositionProvider = { pagerState.currentPage + pagerState.currentPageOffsetFraction },
                         onDestinationSelected = { dest ->
                             scope.launch {
-                                pagerState.animateScrollToPage(destinations.indexOf(dest))
+                                pagerState.animateScrollToPage(
+                                    destinations.indexOf(dest),
+                                    animationSpec = tween(durationMillis = 260, easing = FastOutSlowInEasing),
+                                )
                             }
                         },
                     )

@@ -88,13 +88,15 @@ internal object DownloadRequestFactory {
             addOption("--legacy-server-connect")
             addOption("--concurrent-fragments", "4")
             addOption("--print", "before_dl:__VRKA_TITLE__%(title)s")
-            addOption("--print", "before_dl:__VRKA_UPLOADER__%(uploader|uploader_id|)s")
+            addOption("--print", "before_dl:__VRKA_UPLOADER__%(channel,uploader,creator,artist,uploader_id|)s")
             addOption("--print", "before_dl:__VRKA_THUMB__%(thumbnail|)s")
             addOption("--print", "after_move:$outputMarker%(filepath)s")
             val stagingTemplate = if (options.isPlaylist) {
                 "%(playlist_index|0)03d-%(title).96B.%(ext)s"
-            } else {
+            } else if (options.resolvedMediaUrl != null) {
                 "media.%(ext)s"
+            } else {
+                "%(title).180B.%(ext)s"
             }
             addOption("-o", File(stagingDirectory, stagingTemplate).absolutePath)
 
@@ -127,7 +129,11 @@ internal object DownloadRequestFactory {
                 addOption("--merge-output-format", "mp4")
             }
 
-            if (options.embedMetadata) addOption("--embed-metadata")
+            if (options.embedMetadata) {
+                addOption("--embed-metadata")
+                addOption("--parse-metadata", "%(channel,uploader,creator,artist,uploader_id|)s:%(artist)s")
+                addOption("--parse-metadata", "%(channel,uploader,creator,artist,uploader_id|)s:%(album_artist)s")
+            }
             val effectiveIncludeSubtitles = includeSubtitles && options.resolvedMediaUrl == null
             if (effectiveIncludeSubtitles && options.downloadSubtitles) {
                 addOption("--write-subs")

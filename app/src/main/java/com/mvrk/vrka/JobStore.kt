@@ -79,6 +79,8 @@ internal class JobStore(private val target: File) {
             .put("attempt", job.attempt)
             .put("actualResolution", job.actualResolution)
             .put("subtitleStatus", job.subtitleStatus.name)
+            .put("downloadedBytes", job.downloadedBytes)
+            .put("totalBytes", job.totalBytes)
             .put(
                 "request",
                 JSONObject()
@@ -211,6 +213,8 @@ internal class JobStore(private val target: File) {
             attempt = value.optInt("attempt", 1),
             actualResolution = value.optString("actualResolution").takeIf { it.isNotBlank() && it != "null" },
             subtitleStatus = enumValue(value.optString("subtitleStatus"), com.mvrk.vrka.subtitle.SubtitleStatus.NONE),
+            downloadedBytes = value.optLong("downloadedBytes", 0L),
+            totalBytes = value.optLong("totalBytes", 0L),
         )
     }.getOrNull()
 

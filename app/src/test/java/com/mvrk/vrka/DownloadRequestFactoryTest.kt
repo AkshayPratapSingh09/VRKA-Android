@@ -397,6 +397,24 @@ class DownloadRequestFactoryTest {
         assertTrue(opusRequest.hasOption("--embed-thumbnail"))
     }
 
+    @Test
+    fun titleTemplateAndArtistMetadataAreConfigured() {
+        val request = built(
+            DownloadRequest(
+                url = URL,
+                mode = MediaMode.VIDEO,
+                embedMetadata = true,
+            ),
+        )
+        val output = request.getOption("-o").orEmpty().replace('\\', '/')
+        assertTrue("Output template should use video title", output.endsWith("/%(title).180B.%(ext)s"))
+
+        val command = request.buildCommand()
+        assertTrue("Should include parse-metadata for artist", command.contains("--parse-metadata"))
+        assertTrue(command.any { it.contains("%(channel,uploader,creator,artist,uploader_id|)s:%(artist)s") })
+        assertTrue(command.any { it.contains("before_dl:__VRKA_UPLOADER__%(channel,uploader,creator,artist,uploader_id|)s") })
+    }
+
     private fun built(request: DownloadRequest) =
         DownloadRequestFactory.download(
             DownloadJob(id = "test-job", request = request),
