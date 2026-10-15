@@ -27,9 +27,18 @@ internal fun jobMediaSummary(job: DownloadJob): String = when (job.request.mode)
     }
 }
 
+internal enum class MediaTagType {
+    QUALITY,
+    VIDEO,
+    AUDIO,
+    AUDIO_SPEC,
+    GENERIC,
+}
+
 internal data class MediaTagInfo(
     val label: String,
     val isPrimary: Boolean = false,
+    val type: MediaTagType = MediaTagType.GENERIC,
 )
 
 internal fun jobMediaTags(job: DownloadJob): List<MediaTagInfo> = buildList {
@@ -41,25 +50,25 @@ internal fun jobMediaTags(job: DownloadJob): List<MediaTagInfo> = buildList {
                 job.request.quality != VideoQuality.BEST -> job.request.quality.label
                 else -> "Best"
             }
-            add(MediaTagInfo(label = res, isPrimary = true))
-            add(MediaTagInfo(label = "VIDEO"))
+            add(MediaTagInfo(label = res, isPrimary = true, type = MediaTagType.QUALITY))
+            add(MediaTagInfo(label = "VIDEO", isPrimary = false, type = MediaTagType.VIDEO))
             if (job.request.prefer60Fps) {
-                add(MediaTagInfo(label = "60fps"))
+                add(MediaTagInfo(label = "60fps", isPrimary = false, type = MediaTagType.GENERIC))
             }
         }
         MediaMode.AUDIO -> {
             when (job.request.audioFormat) {
                 AudioFormat.MP3 -> {
-                    add(MediaTagInfo(label = "MP3 ${job.request.mp3Bitrate}k", isPrimary = true))
-                    add(MediaTagInfo(label = "AUDIO"))
+                    add(MediaTagInfo(label = "MP3 ${job.request.mp3Bitrate}k", isPrimary = true, type = MediaTagType.AUDIO_SPEC))
+                    add(MediaTagInfo(label = "AUDIO", isPrimary = false, type = MediaTagType.AUDIO))
                 }
                 AudioFormat.OPUS -> {
-                    add(MediaTagInfo(label = "OPUS", isPrimary = true))
-                    add(MediaTagInfo(label = "AUDIO"))
+                    add(MediaTagInfo(label = "OPUS", isPrimary = true, type = MediaTagType.AUDIO_SPEC))
+                    add(MediaTagInfo(label = "AUDIO", isPrimary = false, type = MediaTagType.AUDIO))
                 }
                 AudioFormat.WAV -> {
-                    add(MediaTagInfo(label = "WAV", isPrimary = true))
-                    add(MediaTagInfo(label = "AUDIO"))
+                    add(MediaTagInfo(label = "WAV", isPrimary = true, type = MediaTagType.AUDIO_SPEC))
+                    add(MediaTagInfo(label = "AUDIO", isPrimary = false, type = MediaTagType.AUDIO))
                 }
             }
         }

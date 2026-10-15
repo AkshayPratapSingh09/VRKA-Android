@@ -48,6 +48,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -151,7 +152,7 @@ internal fun HomeScreen(
                 .clip(RoundedCornerShape(16.dp))
                 .background(VrkaTokens.SurfaceCard)
                 .border(
-                    1.dp,
+                    0.75.dp,
                     if (validation.isNotBlank()) VrkaTokens.Error else VrkaTokens.BorderSubtle,
                     RoundedCornerShape(16.dp),
                 )
@@ -165,7 +166,7 @@ internal fun HomeScreen(
                 Icon(
                     painter = painterResource(R.drawable.ic_download),
                     contentDescription = null,
-                    tint = VrkaTokens.AccentLight,
+                    tint = VrkaTokens.Accent,
                     modifier = Modifier.size(19.dp),
                 )
                 Spacer(Modifier.width(12.dp))
@@ -179,7 +180,7 @@ internal fun HomeScreen(
                     textStyle = MaterialTheme.typography.bodyMedium.copy(
                         color = VrkaTokens.TextPrimary,
                     ),
-                    cursorBrush = androidx.compose.ui.graphics.SolidColor(VrkaTokens.AccentLight),
+                    cursorBrush = androidx.compose.ui.graphics.SolidColor(VrkaTokens.Accent),
                     modifier = Modifier.weight(1f),
                     decorationBox = { innerTextField ->
                         if (url.isEmpty()) {
@@ -203,7 +204,7 @@ internal fun HomeScreen(
                         },
                         shape = CircleShape,
                         color = VrkaTokens.SurfaceElevated,
-                        border = BorderStroke(1.dp, VrkaTokens.BorderSubtle),
+                        border = BorderStroke(0.75.dp, VrkaTokens.BorderSubtle),
                         modifier = Modifier.size(28.dp),
                     ) {
                         Box(contentAlignment = Alignment.Center) {
@@ -231,13 +232,13 @@ internal fun HomeScreen(
                         },
                         shape = RoundedCornerShape(10.dp),
                         color = VrkaTokens.AccentContainer,
-                        border = BorderStroke(1.dp, VrkaTokens.BorderActive),
+                        border = BorderStroke(0.75.dp, VrkaTokens.BorderActive.copy(alpha = 0.5f)),
                     ) {
                         Text(
                             "Paste",
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
-                            color = VrkaTokens.AccentLight,
+                            color = VrkaTokens.Accent,
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                         )
                     }
@@ -417,40 +418,81 @@ internal fun HomeScreen(
 
         Spacer(Modifier.height(16.dp))
 
+        val advancedChevronRotation by androidx.compose.animation.core.animateFloatAsState(
+            targetValue = if (advanced) 180f else 0f,
+            animationSpec = androidx.compose.animation.core.tween(
+                durationMillis = 240,
+                easing = androidx.compose.animation.core.FastOutSlowInEasing,
+            ),
+            label = "advanced_chevron_rotation",
+        )
+
         VrkaSectionContainer(
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(18.dp),
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(12.dp))
                     .clickable { advanced = !advanced }
-                    .padding(vertical = 6.dp),
+                    .padding(horizontal = 4.dp, vertical = 6.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f, fill = false),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(28.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(if (advanced) VrkaTokens.AccentContainer else VrkaTokens.SurfaceInset),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_settings),
+                            contentDescription = null,
+                            tint = if (advanced) VrkaTokens.Accent else VrkaTokens.TextSecondary,
+                            modifier = Modifier.size(15.dp),
+                        )
+                    }
+                    Spacer(Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = "Advanced Options",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontFamily = VrkaSansFamily,
+                                fontWeight = FontWeight.SemiBold,
+                            ),
+                            color = VrkaTokens.TextPrimary,
+                        )
+                        Text(
+                            text = if (advanced) "Tap to collapse settings" else "Stream, headers, cookies & audio",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontFamily = VrkaSansFamily,
+                            ),
+                            color = VrkaTokens.TextTertiary,
+                        )
+                    }
+                }
+
+                Box(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clip(CircleShape)
+                        .background(if (advanced) VrkaTokens.AccentContainer else VrkaTokens.SurfaceInset),
+                    contentAlignment = Alignment.Center,
+                ) {
                     Icon(
-                        painter = painterResource(R.drawable.ic_settings),
-                        contentDescription = null,
-                        tint = VrkaTokens.TextSecondary,
-                        modifier = Modifier.size(16.dp),
-                    )
-                    Spacer(Modifier.width(10.dp))
-                    Text(
-                        if (advanced) "Hide Advanced Options" else "Advanced Options",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontFamily = VrkaMonoFamily,
-                            fontWeight = FontWeight.SemiBold,
-                        ),
-                        color = VrkaTokens.TextPrimary,
+                        painter = painterResource(R.drawable.ic_chevron_down),
+                        contentDescription = if (advanced) "Collapse Advanced Options" else "Expand Advanced Options",
+                        tint = if (advanced) VrkaTokens.Accent else VrkaTokens.TextSecondary,
+                        modifier = Modifier
+                            .size(15.dp)
+                            .graphicsLayer { rotationZ = advancedChevronRotation },
                     )
                 }
-                Text(
-                    if (advanced) "▲" else "▼",
-                    style = MaterialTheme.typography.labelSmall.copy(fontFamily = VrkaMonoFamily),
-                    color = VrkaTokens.AccentLight,
-                )
             }
 
             androidx.compose.animation.AnimatedVisibility(

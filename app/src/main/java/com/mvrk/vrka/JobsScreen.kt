@@ -576,9 +576,9 @@ private fun JobCard(
     )
 
     Surface(
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(16.dp),
         color = if (isSelected) VrkaTokens.SurfaceInset else VrkaTokens.SurfaceCard,
-        border = BorderStroke(1.dp, if (isSelected) VrkaTokens.BorderActive else VrkaTokens.BorderSubtle),
+        border = if (isSelected) BorderStroke(1.5.dp, VrkaTokens.BorderActive) else BorderStroke(0.75.dp, VrkaTokens.BorderSubtle),
         modifier = Modifier
             .fillMaxWidth()
             .then(
@@ -930,20 +930,78 @@ private fun MediaTagBadge(
     tag: MediaTagInfo,
     modifier: Modifier = Modifier,
 ) {
+    val isLight = LocalVrkaColors.current.isLight
+
+    val (bg, textColor, borderColor) = when (tag.type) {
+        MediaTagType.VIDEO -> if (isLight) {
+            Triple(
+                Color(0xFFEEF4FF),
+                Color(0xFF1D58BD),
+                Color(0x281D58BD),
+            )
+        } else {
+            Triple(
+                Color(0xFF151D2D),
+                Color(0xFF8BB5FE),
+                Color(0x358BB5FE),
+            )
+        }
+        MediaTagType.AUDIO -> if (isLight) {
+            Triple(
+                Color(0xFFFFF4E5),
+                Color(0xFFB45309),
+                Color(0x28B45309),
+            )
+        } else {
+            Triple(
+                Color(0xFF281E14),
+                Color(0xFFFFB865),
+                Color(0x35FFB865),
+            )
+        }
+        MediaTagType.QUALITY, MediaTagType.AUDIO_SPEC -> if (isLight) {
+            Triple(
+                Color(0xFFE6F8EF),
+                Color(0xFF0F683B),
+                Color(0x3016804A),
+            )
+        } else {
+            Triple(
+                COLOR_MINT.copy(alpha = 0.12f),
+                COLOR_MINT,
+                COLOR_MINT.copy(alpha = 0.28f),
+            )
+        }
+        MediaTagType.GENERIC -> if (isLight) {
+            Triple(
+                Color(0xFFF1F3F5),
+                Color(0xFF4B5563),
+                Color(0x18000000),
+            )
+        } else {
+            Triple(
+                Color(0xFF202229),
+                Color(0xFFD1D5DB),
+                Color(0x14FFFFFF),
+            )
+        }
+    }
+
     Surface(
-        shape = RoundedCornerShape(5.dp),
-        color = if (tag.isPrimary) VrkaTokens.SurfaceInset else Color(0xFF22242B),
-        border = BorderStroke(1.dp, if (tag.isPrimary) VrkaTokens.BorderActive else VrkaTokens.BorderSubtle),
+        shape = RoundedCornerShape(6.dp),
+        color = bg,
+        border = BorderStroke(0.75.dp, borderColor),
         modifier = modifier,
     ) {
         Text(
             text = tag.label,
             style = MaterialTheme.typography.labelSmall.copy(
-                fontFamily = VrkaMonoFamily,
-                fontSize = 10.sp,
-                fontWeight = if (tag.isPrimary) FontWeight.Bold else FontWeight.Medium,
+                fontFamily = VrkaSansFamily,
+                fontSize = 10.5.sp,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = 0.3.sp,
             ),
-            color = if (tag.isPrimary) VrkaTokens.Accent else VrkaTokens.TextSecondary,
+            color = textColor,
             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
         )
     }
@@ -975,12 +1033,12 @@ private fun FolderActionButton(
         tooltip = {
             PlainTooltip(
                 shape = RoundedCornerShape(6.dp),
-                containerColor = Color(0xFF1E2025),
+                containerColor = VrkaTokens.SurfaceElevated,
                 contentColor = VrkaTokens.TextPrimary,
             ) {
                 Text(
                     text = "Saved in: $locationDisplay",
-                    fontFamily = VrkaMonoFamily,
+                    fontFamily = VrkaSansFamily,
                     fontSize = 11.sp,
                 )
             }
@@ -990,9 +1048,9 @@ private fun FolderActionButton(
         Box(
             modifier = modifier
                 .size(28.dp)
-                .clip(RoundedCornerShape(6.dp))
+                .clip(RoundedCornerShape(7.dp))
                 .background(VrkaTokens.SurfaceInset)
-                .border(BorderStroke(1.dp, VrkaTokens.BorderSubtle), RoundedCornerShape(6.dp))
+                .border(BorderStroke(0.75.dp, VrkaTokens.BorderSubtle), RoundedCornerShape(7.dp))
                 .combinedClickable(
                     onClick = {
                         openDownloadFolder(context, treeUri)
@@ -1007,7 +1065,7 @@ private fun FolderActionButton(
             Icon(
                 painter = painterResource(R.drawable.ic_folder),
                 contentDescription = "Open Folder",
-                tint = VrkaTokens.Accent,
+                tint = VrkaTokens.TextSecondary,
                 modifier = Modifier.size(15.dp),
             )
         }

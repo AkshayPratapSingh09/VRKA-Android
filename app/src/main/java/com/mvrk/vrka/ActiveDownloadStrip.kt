@@ -53,7 +53,7 @@ internal fun ActiveDownloadStrip(
         colors.background == Color.Black -> Color(0xF2000000)
         else -> Color(0xDC14141E)
     }
-    val stripBorder = if (colors.isLight) Color(0x351B804D) else VrkaTokens.BorderActive.copy(alpha = 0.5f)
+    val stripBorder = if (colors.isLight) Color(0x2015803D) else VrkaTokens.BorderActive.copy(alpha = 0.35f)
 
     Box(
         modifier = modifier
@@ -63,7 +63,7 @@ internal fun ActiveDownloadStrip(
                 shape = RoundedCornerShape(20.dp),
                 blurRadius = 16.dp,
                 tintColor = stripGlassTint,
-                highlightAlpha = if (colors.isLight) 0.40f else 0.28f,
+                highlightAlpha = if (colors.isLight) 0.35f else 0.22f,
                 borderColor = stripBorder,
             )
             .clickable(
@@ -97,14 +97,14 @@ internal fun ActiveDownloadStrip(
                     Surface(
                         shape = CircleShape,
                         color = VrkaTokens.AccentContainer,
-                        border = BorderStroke(1.dp, VrkaTokens.BorderActive),
+                        border = BorderStroke(0.75.dp, VrkaTokens.BorderActive.copy(alpha = 0.5f)),
                         modifier = Modifier.size(34.dp),
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_download),
                                 contentDescription = null,
-                                tint = VrkaTokens.AccentLight,
+                                tint = VrkaTokens.Accent,
                                 modifier = Modifier.size(17.dp),
                             )
                         }

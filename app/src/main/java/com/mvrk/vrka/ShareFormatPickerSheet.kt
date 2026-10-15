@@ -53,6 +53,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -73,15 +74,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-private val SheetBackground = Color(0xFF17181C)
-private val SurfaceCardColor = Color(0xFF202227)
-private val SurfacePillColor = Color(0xFF282A31)
-private val MintAccent = Color(0xFF97E7BA)
-private val CyberLimeAccent = Color(0xFFFBFB78)
-private val BorderColor = Color(0xFF2E3139)
-private val TextPrimaryColor = Color(0xFFFFFFFF)
-private val TextSecondaryColor = Color(0xFF9EA0A8)
-private val TextTertiaryColor = Color(0xFF6B6D74)
+private val SheetBackground: Color @Composable @ReadOnlyComposable get() = VrkaTokens.SurfaceCard
+private val SurfaceCardColor: Color @Composable @ReadOnlyComposable get() = VrkaTokens.SurfaceElevated
+private val SurfacePillColor: Color @Composable @ReadOnlyComposable get() = VrkaTokens.SurfaceInset
+private val MintAccent: Color @Composable @ReadOnlyComposable get() = VrkaTokens.Accent
+private val CyberLimeAccent: Color @Composable @ReadOnlyComposable get() = VrkaTokens.AccentLight
+private val BorderColor: Color @Composable @ReadOnlyComposable get() = VrkaTokens.BorderSubtle
+private val TextPrimaryColor: Color @Composable @ReadOnlyComposable get() = VrkaTokens.TextPrimary
+private val TextSecondaryColor: Color @Composable @ReadOnlyComposable get() = VrkaTokens.TextSecondary
+private val TextTertiaryColor: Color @Composable @ReadOnlyComposable get() = VrkaTokens.TextTertiary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -247,12 +248,12 @@ fun ShareFormatPickerSheet(
                                 .fillMaxWidth()
                                 .padding(bottom = 12.dp),
                             shape = RoundedCornerShape(12.dp),
-                            color = Color(0xFF2C2415),
-                            border = BorderStroke(1.dp, Color(0xFF6B5324)),
+                            color = VrkaTokens.Warning.copy(alpha = 0.12f),
+                            border = BorderStroke(0.75.dp, VrkaTokens.Warning.copy(alpha = 0.35f)),
                         ) {
                             Text(
                                 text = "Probe took > 45s. Standard profiles available below:",
-                                color = CyberLimeAccent,
+                                color = VrkaTokens.Warning,
                                 fontSize = 12.sp,
                                 fontFamily = VrkaSansFamily,
                                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
@@ -325,7 +326,7 @@ private fun ProbingLoaderView(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
         color = SurfaceCardColor,
-        border = BorderStroke(1.dp, BorderColor),
+        border = BorderStroke(0.75.dp, BorderColor),
     ) {
         Column(
             modifier = Modifier
@@ -395,7 +396,7 @@ private fun ProbingLoaderView(
             OutlinedButton(
                 onClick = onSkipProbe,
                 shape = RoundedCornerShape(20.dp),
-                border = BorderStroke(1.dp, BorderColor),
+                border = BorderStroke(0.75.dp, BorderColor),
             ) {
                 Text(
                     text = "Skip wait & choose standard format",
@@ -421,7 +422,7 @@ private fun FormatSelectorView(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
             color = SurfaceCardColor,
-            border = BorderStroke(1.dp, BorderColor),
+            border = BorderStroke(0.75.dp, BorderColor),
         ) {
             Row(
                 modifier = Modifier
@@ -491,7 +492,7 @@ private fun FormatSelectorView(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(SurfaceCardColor, RoundedCornerShape(12.dp))
-                .border(1.dp, BorderColor, RoundedCornerShape(12.dp))
+                .border(0.75.dp, BorderColor, RoundedCornerShape(12.dp))
                 .padding(4.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
@@ -539,15 +540,20 @@ private fun FormatOptionCard(
     option: ProbedFormatOption,
     onClick: () -> Unit,
 ) {
-    val borderColor = if (option.isRecommended) MintAccent.copy(alpha = 0.8f) else BorderColor
+    val isLight = LocalVrkaColors.current.isLight
+    val borderColor = if (option.isRecommended) MintAccent.copy(alpha = 0.6f) else BorderColor
     val badgeBg = if (option.isRecommended) MintAccent else SurfacePillColor
-    val badgeText = if (option.isRecommended) Color(0xFF17181C) else TextPrimaryColor
+    val badgeText = if (option.isRecommended) {
+        if (isLight) Color.White else Color(0xFF17181C)
+    } else {
+        TextPrimaryColor
+    }
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         color = SurfaceCardColor,
-        border = BorderStroke(1.dp, borderColor),
+        border = BorderStroke(0.75.dp, borderColor),
     ) {
         Row(
             modifier = Modifier

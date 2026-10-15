@@ -141,7 +141,7 @@ fun VrkaCard(
         shape = RoundedCornerShape(VrkaTokens.RadiusCard),
         color = VrkaTokens.SurfaceCard,
         contentColor = VrkaTokens.TextPrimary,
-        border = BorderStroke(1.dp, VrkaTokens.BorderSubtle),
+        border = BorderStroke(0.75.dp, VrkaTokens.BorderSubtle),
         modifier = modifier.fillMaxWidth(),
         onClick = onClick ?: {},
         enabled = onClick != null,
@@ -163,7 +163,7 @@ fun VrkaInsetSurface(
         modifier = modifier
             .clip(RoundedCornerShape(cornerRadius))
             .background(VrkaTokens.SurfaceInset)
-            .border(1.dp, VrkaTokens.BorderSubtle, RoundedCornerShape(cornerRadius)),
+            .border(0.75.dp, VrkaTokens.BorderSubtle, RoundedCornerShape(cornerRadius)),
     ) {
         content()
     }
@@ -606,17 +606,17 @@ fun VrkaGlassCard(
 @Composable
 fun VrkaSectionContainer(
     modifier: Modifier = Modifier,
-    shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(16.dp),
+    shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(18.dp),
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Surface(
         shape = shape,
         color = VrkaTokens.SurfaceCard,
-        border = BorderStroke(1.dp, VrkaTokens.BorderSubtle),
+        border = BorderStroke(0.75.dp, VrkaTokens.BorderSubtle),
         modifier = modifier.fillMaxWidth(),
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             content = content,
         )
     }
